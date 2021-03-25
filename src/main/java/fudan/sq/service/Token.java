@@ -1,4 +1,4 @@
-package fudan.se.lab2.service;
+package fudan.sq.service;
 
 public class Token {
     String token;
