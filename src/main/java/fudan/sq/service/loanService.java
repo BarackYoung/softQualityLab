@@ -1,4 +1,4 @@
-package fudan.se.lab2.service;
+package fudan.sq.service;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
