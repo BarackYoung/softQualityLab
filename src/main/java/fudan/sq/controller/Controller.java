@@ -1,6 +1,7 @@
 package fudan.sq.controller;
 
 
+import fudan.sq.service.LoanService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +25,17 @@ public class Controller {
 
     Logger logger = LoggerFactory.getLogger(Controller.class);
     org.slf4j.Marker marker;
-    @Autowired
-    public Controller() {
 
+    @Autowired
+    LoanService loanService;
+    @Autowired
+    public Controller(LoanService loanService) {
+     this.loanService = loanService;
     }
 
-    @GetMapping("/welcome")
-    public ResponseEntity<?> test(){
-        return ResponseEntity.ok("Hello QingQing");
+    @GetMapping("/getClientInfo/{id}")
+     public ResponseEntity<?> getClientInfo(@PathVariable String id) throws Exception {
+        return ResponseEntity.ok(loanService.getClientInfo(id));
     }
 
 }

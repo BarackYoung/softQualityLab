@@ -52,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 //允许任何人登录首页，注册界面
-                .antMatchers("/welcome","/register",LOGIN).permitAll()
+                .antMatchers("**",LOGIN).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 //表单登录，失败返回登录界面，成功返回welcome界面
@@ -65,6 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 //      Here we use JWT(Json Web Token) to authenticate the user.
 //      You need to write your code in the class 'JwtRequestFilter' to make it works.
+
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
