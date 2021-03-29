@@ -33,9 +33,29 @@ public class Controller {
      this.loanService = loanService;
     }
 
+    /**
+     * 查询客户信息
+     * */
     @GetMapping("/getClientInfo/{id}")
      public ResponseEntity<?> getClientInfo(@PathVariable String id) throws Exception {
         return ResponseEntity.ok(loanService.getClientInfo(id));
     }
+
+    /**
+     * 根据客户号获取还款列表
+     * 参数：客户号customerCode
+     * */
+     @GetMapping("/getLoanList/{customerCode}")
+    public ResponseEntity<?> getLoanList(@PathVariable String customerCode) throws Exception {
+         return ResponseEntity.ok(loanService.getLoanList(customerCode));
+     }
+
+     /**
+      * 获取还款计划
+      * */
+     @GetMapping("/getLoanPlan/{iouNum}")
+    public ResponseEntity<?> getLoanPlan(@PathVariable String iouNum) throws Exception {
+         return ResponseEntity.ok(loanService.getLoanPlan(iouNum));
+     }
 
 }

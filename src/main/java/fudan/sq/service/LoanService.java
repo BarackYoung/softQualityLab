@@ -22,9 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Base64;
 
 import java.io.BufferedReader;
@@ -58,6 +56,36 @@ public Map<String,Object> getClientInfo(String IDNumber) throws Exception {
    }
    return returnMessage;
 }
+
+
+/**
+ * 通过客户号查询该用户的贷款列表
+ * */
+public Map<String,Object> getLoanList(String customerCode) throws Exception {
+   Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22loanStatus%22:1%7D");
+   Map<String,Object> returnMsg = new HashMap<>();
+   List<Map<String,Object>> list = new LinkedList<>();
+   if (res.get("total")==null){
+      returnMsg.put("res",new LinkedList<>());
+   }
+   Object o = res.get("list");
+   String json = httpUtils.gson.toJson(o);
+   Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+   for (Map map:maps){
+      if (map.get("customerCode").toString().hashCode()==customerCode.hashCode()){
+         list.add(map);
+      }
+   }
+   returnMsg.put("res",list);
+   return returnMsg;
+}
+   /**
+    * 获取还款计划
+    * */
+   public Map<String,Object> getLoanPlan(String iouNum) throws Exception {
+      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
+      return res;
+   }
 
 
 }

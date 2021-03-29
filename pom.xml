@@ -8,11 +8,11 @@
         <version>2.2.5.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>fudan.se</groupId>
-    <artifactId>lab2</artifactId>
+    <groupId>fudan.softQuality</groupId>
+    <artifactId>softQuality</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>lab2</name>
-    <description>2020 Fudan Software Engineering Lab2</description>
+    <name>softQuality</name>
+    <description>2021 Fudan Software</description>
 
     <properties>
         <java.version>1.8</java.version>

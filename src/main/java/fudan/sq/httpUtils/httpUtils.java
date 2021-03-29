@@ -68,6 +68,10 @@ public class httpUtils {
         }
     }
 
+
+    /**
+     * put方法
+     * */
     public static Map<String,Object> doPut(String strUrl,String param){
         CloseableHttpClient httpclient = HttpClients.createDefault();
 
