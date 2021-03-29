@@ -22,6 +22,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Base64;
 
@@ -84,9 +86,40 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
     * */
    public Map<String,Object> getLoanPlan(String iouNum) throws Exception {
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
-      return res;
+      List<Map<String,Object>> overdue = new LinkedList<>();
+      List<Map<String,Object>> remain = new LinkedList<>();
+      List<Map<String,Object>> finished = new LinkedList<>();
+      Object o = res.get("data");
+      String json = httpUtils.gson.toJson(o);
+      Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+      for (Map<String,Object> map:maps){
+         String dataStr = map.get("planDate").toString();
+         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+         Date date = new Date(System.currentTimeMillis());
+         Date planData = df.parse(dataStr);
+         Double remainAmount = Double.parseDouble(map.get("remainAmount").toString());
+         if (remainAmount<=0){
+           finished.add(map);
+         }else if (planData.before(date)){
+            overdue.add(map);
+         }else {
+            remain.add(map);
+         }
+      }
+      Map<String,Object> returnMsg = new HashMap<>();
+      returnMsg.put("message",res.get("message").toString());
+      returnMsg.put("overdue",overdue);
+      returnMsg.put("remain",remain);
+      returnMsg.put("finished",finished);
+      return returnMsg;
    }
 
+   public static void main(String[] args) throws ParseException {
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      Date date = new Date(System.currentTimeMillis());
+      Date date1 = simpleDateFormat.parse("2021-3-30");
+      System.out.println(date.before(date1));
+   }
 
 }
 
