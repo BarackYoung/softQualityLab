@@ -41,7 +41,9 @@ public class Controller {
         return ResponseEntity.ok(loanService.getClientInfo(id));
     }
 
-
+    /**
+     * 批量还款
+     * */
     @PostMapping("/batchRepayment")
     public ResponseEntity<?> batchRepaymentLoan() throws Exception {
         return ResponseEntity.ok(loanService.batchRepaymentLoan());
