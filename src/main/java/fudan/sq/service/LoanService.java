@@ -64,12 +64,13 @@ public Map<String,Object> getClientInfo(String IDNumber) throws Exception {
  * 通过客户号查询该用户的贷款列表
  * */
 public Map<String,Object> getLoanList(String customerCode) throws Exception {
-   Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22loanStatus%22:1%7D");
+   Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22orderBy%22:%22order+by+b.updateTime+desc%22%7D");
    Map<String,Object> returnMsg = new HashMap<>();
    List<Map<String,Object>> list = new LinkedList<>();
    if (res.get("total")==null){
       returnMsg.put("res",new LinkedList<>());
    }
+   logger.info("贷款列表:"+res);
    Object o = res.get("list");
    String json = httpUtils.gson.toJson(o);
    Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
@@ -83,8 +84,10 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
 }
    /**
     * 获取还款计划
+    * repaymentStatus:1（未还清） 2（已还清）
     * */
    public Map<String,Object> getLoanPlan(String iouNum) throws Exception {
+      Map<String,Object> returnMsg = new HashMap<>();
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
       List<Map<String,Object>> overdue = new LinkedList<>();
       List<Map<String,Object>> remain = new LinkedList<>();
@@ -92,34 +95,107 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       Object o = res.get("data");
       String json = httpUtils.gson.toJson(o);
       Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+      if (maps==null){
+         returnMsg.put("message","no information");
+      }
       for (Map<String,Object> map:maps){
          String dataStr = map.get("planDate").toString();
          SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
          Date date = new Date(System.currentTimeMillis());
          Date planData = df.parse(dataStr);
-         Double remainAmount = Double.parseDouble(map.get("remainAmount").toString());
-         if (remainAmount<=0){
+        double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
+         if (repaymentStatus>1.0){
            finished.add(map);
          }else if (planData.before(date)){
+            double planAmount = Double.parseDouble(map.get("planAmount").toString());
+            double penaltyInterest = planAmount*0.05;
+            map.put("penaltyInterest",penaltyInterest);
             overdue.add(map);
          }else {
             remain.add(map);
          }
       }
-      Map<String,Object> returnMsg = new HashMap<>();
       returnMsg.put("message",res.get("message").toString());
       returnMsg.put("overdue",overdue);
       returnMsg.put("remain",remain);
       returnMsg.put("finished",finished);
       return returnMsg;
    }
+   /**
+    * 缴纳罚息
+    *
+    * */
 
-   public static void main(String[] args) throws ParseException {
-      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+   /**
+   * 归还贷款
+    * 参数：借据号：iouNum
+    * 还款期数：id
+    * 还款金额：amount
+    * 应还利息：planInterest
+    * 罚息：penaltyInterest
+    *
+   * */
+   public Map<String,Object> repayment(String iouNum,double id,double amount,double interest,double penaltyInterest) throws Exception {
+      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
+      Object o = res.get("data");
+      String json = httpUtils.gson.toJson(o);
+      Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+      Map<String,Object> returnMsg = new HashMap<>();
+      Map<String,Object> repaymentBill = new HashMap<>();
+      for (Map<String,Object> map:maps){
+         double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
+         double planId = Double.parseDouble(map.get("id").toString());
+         if (planId<id&&repaymentStatus<2.0){
+            //提示先还清之前的账单
+            returnMsg.put("status","1");
+            return returnMsg;
+         }else if (planId==id&&repaymentStatus==2.0){
+            //还款
+           repaymentBill = map;
+           break;
+         }
+      }
+      Map<String,Object> loanPlanDto = new HashMap<>();
+      double compoundInterest = 0;
+      Object creatTime = repaymentBill.get("creatTime");
+      double creator = 0;
+      Date currentDate = new Date(System.currentTimeMillis());
+      double id_ = id;
+      String iouNum_ = iouNum;
+      int payMethod = 0;
+      double penaltyInterest_ = 0;
+      double planAmount = Double.parseDouble(repaymentBill.get("planAmount").toString());
+      Object planDate = repaymentBill.get("planDate");
+      double planInterest = Double.parseDouble(repaymentBill.get("planInterest").toString());
+      double planNum = 0;
+      double planPrincipal = Double.parseDouble(repaymentBill.get("planPrincipal").toString());
+      double remainAmount = Double.parseDouble(repaymentBill.get("remainAmount").toString());
+      double remainInterest = Double.parseDouble(repaymentBill.get("remainInterest").toString());
+      double remainPrincipal = Double.parseDouble(repaymentBill.get("remainPrincipal").toString());
+      double repaymentStatus = 1;
+      String transactionCode = "";
+      Date updateTime = new Date(System.currentTimeMillis());
+      double updater = 0;
+
+      String dataStr = repaymentBill.get("planDate").toString();
+      SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
       Date date = new Date(System.currentTimeMillis());
-      Date date1 = simpleDateFormat.parse("2021-3-30");
-      System.out.println(date.before(date1));
+      Date planData = df.parse(dataStr);
+      if (planData.before(date)){
+
+      }
+      return null;
    }
+
+
+
+//   public static void main(String[] args) throws ParseException {
+//      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+//      Date date = new Date(System.currentTimeMillis());
+//      Date date1 = simpleDateFormat.parse("2021-3-30");
+//      System.out.println(date.before(date1));
+//   }
 
 }
 
