@@ -80,7 +80,10 @@ public class httpUtils {
         try {
             final HttpPut put=new HttpPut(strUrl);
 
+            put.addHeader("Content-Type", "application/json");
             put.setEntity(new StringEntity(param,"UTF-8"));
+            put.setHeader("login-token", Token.token);
+
 
             CloseableHttpResponse response1= httpclient.execute(put );
 

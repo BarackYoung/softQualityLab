@@ -61,6 +61,14 @@ public class Controller {
      /**
       * 还款
       * */
-
+     @PostMapping("/repayment")
+    public ResponseEntity<?> repayment(@RequestBody Map<String,String> request) throws Exception {
+         logger.info("请求参数："+request);
+         String iouNum = request.get("iouNum");
+         int id = Integer.parseInt(request.get("id"));
+         double amount = Double.parseDouble(request.get("amount"));
+         double penaltyInterest = Double.parseDouble(request.get("penaltyInterest"));
+         return ResponseEntity.ok(loanService.repayment(iouNum,id,amount,penaltyInterest));
+     }
 
 }
