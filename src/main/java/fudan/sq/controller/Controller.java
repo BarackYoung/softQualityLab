@@ -38,4 +38,8 @@ public class Controller {
         return ResponseEntity.ok(loanService.getClientInfo(id));
     }
 
+    @PostMapping("/batchRepayment")
+    public ResponseEntity<?> batchRepaymentLoan() throws Exception {
+        return ResponseEntity.ok(loanService.batchRepaymentLoan());
+    }
 }

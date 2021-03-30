@@ -1,7 +1,10 @@
 package fudan.sq;
 
 import fudan.sq.httpUtils.httpUtils;
+
+
 import fudan.sq.service.JwtUserDetailsService;
+import fudan.sq.service.LoanService;
 import fudan.sq.service.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -31,7 +34,11 @@ public class Application {
         Map<String,Object> res = httpUtils.httpClientPost("http://10.176.122.172:8012/sys/login/restful?username=JT2103258421&password=imbus123","");
         if (res.containsKey("token")){
             Token.token = res.get("token").toString();
+
         }
+        LoanService loanService = new LoanService();
+        loanService.getClientInfo("533023199908314312");
+        loanService.batchRepaymentLoan();
     }
 
 
