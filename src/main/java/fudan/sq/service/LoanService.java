@@ -148,11 +148,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
          double planNum = Double.parseDouble(map.get("planNum").toString());
          logger.info("planId:"+planNum+";id:"+id+";repaymentStatus:"+repaymentStatus);
-         if (planNum<id&&repaymentStatus<2.0){
-            //提示先还清之前的账单
-            returnMsg.put("status","先还完之前的订单");
-            return returnMsg;
-         }else if (planNum==id&&repaymentStatus==1.0){
+        if (planNum==id&&repaymentStatus==1.0){
             //还款
            repaymentBill = map;
            break;
