@@ -73,10 +73,26 @@ public class Controller {
     public ResponseEntity<?> repayment(@RequestBody Map<String,String> request) throws Exception {
          logger.info("请求参数："+request);
          String iouNum = request.get("iouNum");
-         int id = Integer.parseInt(request.get("id"));
+         int id = Integer.parseInt(request.get("planNum"));
          double amount = Double.parseDouble(request.get("amount"));
          double penaltyInterest = Double.parseDouble(request.get("penaltyInterest"));
          return ResponseEntity.ok(loanService.repayment(iouNum,id,amount,penaltyInterest));
+     }
+
+     /**
+      * 查询流水号
+      * * 查询条件
+      *     * {
+      *     *     startTime:开始时间
+      *     *     endTime:结束时间
+      *     *     account：账号
+      *     *     branchName：办理机构
+      *     *     transactionType：交易类型
+      *     *
+      * */
+     @GetMapping("/getTransaction")
+    public ResponseEntity<?> getTransaction(@RequestBody Map<String,String> request) throws Exception {
+       return ResponseEntity.ok(loanService.getTransaction(request));
      }
 
 
