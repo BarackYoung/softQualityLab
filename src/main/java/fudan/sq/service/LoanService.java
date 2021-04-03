@@ -309,7 +309,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                  repayment.setRemainPrincipal(remain);
                  repayment.setRemainInterest(0);
                  repaymentRepository.save(repayment);
-                 returnMsg.put("flag",false);
+                 returnMsg.put("flag",true);
                  returnMsg.put("code","2000.0");
                  returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款成功");
                  returnMsg.put("data",repayment);
