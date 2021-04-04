@@ -153,12 +153,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          returnMsg.put("message","no information");
       }
       for (Map<String,Object> map:maps){
-         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+         /*Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
          if (repayment!=null){
             map.put("remainAmount",repayment.getRemainAmount());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
-         }
+         }*/
 
          String dataStr = map.get("planDate").toString();
          SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -551,7 +551,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                loanPlanDto.put("remainAmount", remainAmount);
                loanPlanDto.put("remainInterest", remainInterest);
                loanPlanDto.put("remainPrincipal", remainPrincipal);
-               loanPlanDto.put("repaymentStatus", repaymentStatus);
+               loanPlanDto.put("repaymentStatus", 2);
                loanPlanDto.put("transactionCode", transactionCode);
                loanPlanDto.put("updateTime", currentDate);
                loanPlanDto.put("updater", updater);
@@ -605,7 +605,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   loanPlanDto.put("remainAmount", remainAmount);
                   loanPlanDto.put("remainInterest", remainInterest);
                   loanPlanDto.put("remainPrincipal", remainPrincipal);
-                  loanPlanDto.put("repaymentStatus", repaymentStatus);
+                  loanPlanDto.put("repaymentStatus", 2);
                   loanPlanDto.put("transactionCode", transactionCode);
                   loanPlanDto.put("updateTime", updateTime);
                   loanPlanDto.put("updater", updater);
@@ -649,7 +649,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             loanPlanDto.put("remainAmount", remainAmount);
             loanPlanDto.put("remainInterest", remainInterest);
             loanPlanDto.put("remainPrincipal", remainPrincipal);
-            loanPlanDto.put("repaymentStatus", repaymentStatus);
+            loanPlanDto.put("repaymentStatus", 2);
             loanPlanDto.put("transactionCode", transactionCode);
             loanPlanDto.put("updateTime", updateTime);
             loanPlanDto.put("updater", updater);
@@ -718,9 +718,10 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
 
 
 
-         Map<String,Object> res3 = httpUtils.httpClientGet("https://http://10.176.122.172:8012/account?customerCode="+customerCode);
+         Map<String,Object> res3 = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode="+customerCode);
+         System.out.println("DD");
          Object o6 = res3.get("data");
-         String accountJson = httpUtils.gson.toJson(o4);
+         String accountJson = httpUtils.gson.toJson(o6);
          Map<String, Object>[] customerMap = httpUtils.gson.fromJson(accountJson, Map[].class);
          Object account = customerMap[0].get("accountDtos");
          String accountDetail = httpUtils.gson.toJson(account);
@@ -735,7 +736,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
 
          for(Map loan:loanMap){
             String id_ = loan.get("id").toString();
-            int id = Integer.parseInt(id_);
+            int id = (int)Double.parseDouble(id_);
             String date = loan.get("planDate").toString();
             Double remainAmount = Double.parseDouble(loan.get("remainAmount").toString());
             Date planDate = df.parse(date);
