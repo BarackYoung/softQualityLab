@@ -44,9 +44,9 @@ public class Controller {
     /**
      * 批量还款
      * */
-    @PostMapping("/batchRepayment/{currentDate}")
-    public ResponseEntity<?> batchRepaymentLoan(@PathVariable String currentDate) throws Exception {
-        return ResponseEntity.ok(loanService.batchRepaymentLoan(currentDate));
+    @PostMapping("/batchRepayment")
+    public ResponseEntity<?> batchRepaymentLoan(@RequestBody Map<String,String> request) throws Exception {
+        return ResponseEntity.ok(loanService.batchRepaymentLoan(request.get("currentDate")));
     }
 
     /**
@@ -99,7 +99,6 @@ public class Controller {
      * */
     @GetMapping("/getAllLoans")
     public ResponseEntity<?> getAllLoans() throws Exception {
-
         return ResponseEntity.ok(loanService.getAllLoans());
     }
     /**
