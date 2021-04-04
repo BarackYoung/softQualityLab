@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
@@ -78,6 +80,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
     * repaymentStatus:1（未还清） 2（已还清）
     * */
    public Map<String,Object> getLoanPlan(String iouNum) throws Exception {
+//      DecimalFormat df = new DecimalFormat("#.00");
       Map<String,Object> returnMsg = new HashMap<>();
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
       List<Map<String,Object>> overdue = new LinkedList<>();
@@ -109,23 +112,37 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainInterest",0);
            finished.add(map);
          }else if (planData.before(date)){
-            double remainAmount = Double.parseDouble(map.get("remainAmount").toString());
-            double penaltyInterest = remainAmount*0.05;
-            if (repayment!=null){
-               map.put("remainAmount",repayment.getRemainAmount());
-               map.put("penaltyInterest",repayment.getPenaltyInterest());
-               map.put("remainInterest",repayment.getRemainInterest());
-               map.put("remainPrincipal",repayment.getRemainPrincipal());
-            }else {
-               map.put("remainAmount",Double.parseDouble(map.get("remainAmount").toString())+penaltyInterest);
-               map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
-               map.put("penaltyInterest",penaltyInterest);
-               map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
-            }
             overdue.add(map);
          }else {
             remain.add(map);
          }
+      }
+      int i = overdue.size();
+      for (Map<String,Object> map:overdue){
+         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+         double remainAmount = Double.parseDouble(map.get("remainAmount").toString());
+         double penaltyInterest = remainAmount*0.05*i;
+         if (repayment!=null){
+            map.put("remainAmount",repayment.getRemainAmount());
+            map.put("penaltyInterest",repayment.getPenaltyInterest());
+            map.put("remainInterest",repayment.getRemainInterest());
+            map.put("remainPrincipal",repayment.getRemainPrincipal());
+         }else {
+            repayment = new Repayment();
+            repayment.setIouNum(map.get("iouNum").toString());
+            repayment.setPanNum((int) Double.parseDouble(map.get("planNum").toString()));
+            repayment.setPenaltyInterest(penaltyInterest);
+            repayment.setRemainPrincipal(Double.parseDouble(map.get("remainPrincipal").toString()));
+            repayment.setRemainInterest(penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            repayment.setRemainAmount(Double.parseDouble(map.get("remainAmount").toString())+penaltyInterest);
+            repayment.setPenaltyInterestClear(false);
+            map.put("remainAmount",Double.parseDouble(map.get("remainAmount").toString())+penaltyInterest);
+            map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
+            map.put("penaltyInterest",penaltyInterest);
+            map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            repaymentRepository.save(repayment);
+         }
+         i--;
       }
       returnMsg.put("message",res.get("message").toString());
       returnMsg.put("overdue",overdue);
@@ -236,38 +253,49 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                 * */
                //先还罚息
                Repayment repayment = repaymentRepository.findByIouNumAndPanNum(repaymentBill.get("iouNum").toString(),(int)Double.parseDouble(repaymentBill.get("planNum").toString()));
+               logger.info("准备还款金额："+amount);
+               logger.info("罚息："+repayment.getPenaltyInterest());
                if (amount<remainInterest){
-                  if (repayment == null){
-                     repayment = new Repayment();
-                     repayment.setIouNum(repaymentBill.get("iouNum").toString());
-                     repayment.setPanNum((int) Double.parseDouble(repaymentBill.get("planNum").toString()));
-                     repayment.setPenaltyInterest(penaltyInterest);
-                     repayment.setRemainAmount(remainAmount-amount);
-                     repayment.setRemainInterest(remainInterest-amount);
-                     repayment.setRemainPrincipal(remainPrincipal);
-                     repaymentRepository.save(repayment);
-                  }else {
+                  if (amount<repayment.getPenaltyInterest()){
+                     returnMsg.put("flag",false);
+                     returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款失败,先缴清罚金");
+//                     returnMsg.put("data",repayment);
+                     return returnMsg;
+                  }
+//                  if (repayment == null){
+//                     repayment = new Repayment();
+//                     repayment.setIouNum(repaymentBill.get("iouNum").toString());
+//                     repayment.setPanNum((int) Double.parseDouble(repaymentBill.get("planNum").toString()));
+//                     repayment.setPenaltyInterest(penaltyInterest);
+//                     repayment.setRemainAmount(remainAmount-amount);
+//                     repayment.setRemainInterest(remainInterest-amount);
+//                     repayment.setRemainPrincipal(remainPrincipal);
+//                     repaymentRepository.save(repayment);
+//                  }else {
+
                      repayment.setRemainAmount(remainAmount-amount);
                      repayment.setRemainInterest(repayment.getRemainInterest()-amount);
                      repayment.setRemainPrincipal(remainPrincipal);
+                     repayment.setPenaltyInterestClear(true);
                      repaymentRepository.save(repayment);
-                  }
+//                  }
                }else {
-                  if (repayment == null){
-                     repayment = new Repayment();
-                     repayment.setIouNum(repaymentBill.get("iouNum").toString());
-                     repayment.setPanNum(Integer.parseInt(repaymentBill.get("planNum").toString()));
-                     repayment.setPenaltyInterest(remainAmount * 0.5);
+//                  if (repayment == null){
+//                     repayment = new Repayment();
+//                     repayment.setIouNum(repaymentBill.get("iouNum").toString());
+//                     repayment.setPanNum(Integer.parseInt(repaymentBill.get("planNum").toString()));
+//                     repayment.setPenaltyInterest(remainAmount * 0.5);
+//                     repayment.setRemainAmount(remainAmount-amount);
+//                     repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
+//                     repayment.setRemainInterest(0);
+//                     repaymentRepository.save(repayment);
+//                  }else {
                      repayment.setRemainAmount(remainAmount-amount);
                      repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
                      repayment.setRemainInterest(0);
+                     repayment.setPenaltyInterestClear(true);
                      repaymentRepository.save(repayment);
-                  }else {
-                     repayment.setRemainAmount(remainAmount-amount);
-                     repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
-                     repayment.setRemainInterest(0);
-                     repaymentRepository.save(repayment);
-                  }
+//                  }
                }
 
                returnMsg.put("flag",true);
@@ -661,7 +689,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                isMatch=false;
                continue;
             }
-            if (map.containsKey(entry.getKey())&&map.get(entry.getKey()).toString().hashCode()!=entry.getValue().hashCode()){
+            if (map.containsKey(entry.getKey())&&map.get(entry.getKey()).toString().contains(entry.getValue())){
                isMatch=false;
             }
          }
