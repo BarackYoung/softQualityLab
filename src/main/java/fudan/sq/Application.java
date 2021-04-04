@@ -46,7 +46,7 @@ public class Application {
         String time=sim.format(dd);
         //System.out.println(time);
 
-        loanService.batchRepaymentLoan("2021-06-04");
+        loanService.batchRepaymentLoan("2021-06-04 15:30:30");
         //loanService.repayment("L2104032001451",52,33.7233,33.7233*0.05);
         loanService.getCredit("ylh1234202103252");
     }

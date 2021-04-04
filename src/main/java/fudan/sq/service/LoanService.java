@@ -471,11 +471,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       for (Map<String,Object> map:overdueBills){
          double planNum = Double.parseDouble(map.get("planNum").toString());
          logger.info("planId:"+planNum+";id:"+id);
-         if (planNum==id){
+         /*if (planNum==id){
             //还款
             repaymentBill = map;
             break;
-         }
+         }*/
+         repaymentBill = map;
       }
 
       logger.info("正在还得账单："+repaymentBill);
@@ -488,7 +489,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
       SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       //Date date = new Date(System.currentTimeMillis());
-      Date currentDate2 = df2.parse(currentDate);
+
+      String currentDate2 = df2.parse(currentDate).toString();
+      SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
+      Date date2 = new Date();
+      date2 = sdf.parse(currentDate2);
+      System.out.println("当前时间："+date2);
 
 
 
@@ -522,7 +528,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
 
       Date planData = df.parse(dataStr);
 
-      if (planData.before(currentDate2)) {
+      if (planData.before(date2)) {
          double should_penaltyInterest = remainAmount * 0.05;
          if (penaltyInterest < should_penaltyInterest) {
             returnMsg.put("flag",false);
@@ -734,27 +740,27 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          }
          logger.info("balance"+balance);
 
-         for(Map loan:loanMap){
-            String id_ = loan.get("id").toString();
+         for(int i = 0;i<loanMap.length;i++){
+            String id_ = loanMap[i].get("id").toString();
             int id = (int)Double.parseDouble(id_);
-            String date = loan.get("planDate").toString();
-            Double remainAmount = Double.parseDouble(loan.get("remainAmount").toString());
+            String date = loanMap[i].get("planDate").toString();
+            Double remainAmount = Double.parseDouble(loanMap[i].get("remainAmount").toString());
             Date planDate = df.parse(date);
             Date currentDate2 = df.parse(currentDate);
             if(planDate.before(currentDate2)){
                Double penalty = remainAmount * 0.05;
                if(balance<penalty){
-                  repaymentOverdue(iouNum,id,remainAmount,0,currentDate);
+                  repaymentOverdue(iouNum,i,remainAmount,0,currentDate);
                   returnMsg.put("flag",false);
                   returnMsg.put("message","还款失败，账户余额小于罚息");
                }
                else if(balance>=penalty&balance<remainAmount){
-                  repaymentOverdue(iouNum,id,0,penalty,currentDate);
+                  repaymentOverdue(iouNum,i,0,penalty,currentDate);
                   returnMsg.put("flag",false);
                   returnMsg.put("message","还款失败，账户余额小于应还贷款金额，已扣除罚息");
                }
                else{
-                  returnMsg = repaymentOverdue(iouNum,id,remainAmount,penalty,currentDate);
+                  returnMsg = repaymentOverdue(iouNum,i,remainAmount,penalty,currentDate);
                }
 
             }
@@ -764,7 +770,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   returnMsg.put("message","还款失败，账户余额小于应还贷款金额");
                }
                else{
-                  returnMsg = repaymentOverdue(iouNum,id,remainAmount,0,currentDate);
+                  returnMsg = repaymentOverdue(iouNum,i,remainAmount,0,currentDate);
                }
 
             }
