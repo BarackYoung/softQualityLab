@@ -75,8 +75,7 @@ public class Controller {
          String iouNum = request.get("iouNum");
          int id = Integer.parseInt(request.get("planNum"));
          double amount = Double.parseDouble(request.get("amount"));
-         double penaltyInterest = Double.parseDouble(request.get("penaltyInterest"));
-         return ResponseEntity.ok(loanService.repayment(iouNum,id,amount,penaltyInterest));
+         return ResponseEntity.ok(loanService.repayment(iouNum,id,amount));
      }
 
      /**
@@ -90,7 +89,7 @@ public class Controller {
       *     *     transactionType：交易类型
       *     *
       * */
-     @GetMapping("/getTransaction")
+     @PostMapping("/getTransaction")
     public ResponseEntity<?> getTransaction(@RequestBody Map<String,String> request) throws Exception {
        return ResponseEntity.ok(loanService.getTransaction(request));
      }
