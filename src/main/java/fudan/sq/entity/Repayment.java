@@ -17,6 +17,15 @@ public class Repayment {
     private double remainPrincipal;
     private double remainInterest;
     private double penaltyInterest;
+    private boolean isPenaltyInterestClear = true;
+
+    public boolean isPenaltyInterestClear() {
+        return isPenaltyInterestClear;
+    }
+
+    public void setPenaltyInterestClear(boolean penaltyInterestClear) {
+        isPenaltyInterestClear = penaltyInterestClear;
+    }
 
     public double getPenaltyInterest() {
         return penaltyInterest;
