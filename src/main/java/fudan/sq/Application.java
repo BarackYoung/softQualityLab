@@ -13,10 +13,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 @SpringBootApplication
@@ -38,7 +36,19 @@ public class Application {
         }
         LoanService loanService = new LoanService();
         loanService.getClientInfo("533023199908314312");
-        loanService.batchRepaymentLoan();
+        //loanService.getAllLoans();
+        //loanService.getLoanPlan("L2104032001451");
+        loanService.getLoanPlanByDate("L2103301020571","2021-04-03");
+
+        Date dd=new Date();
+        //格式化
+        SimpleDateFormat sim=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time=sim.format(dd);
+        //System.out.println(time);
+
+        //loanService.batchRepaymentLoan(time);
+        //loanService.repayment("L2104032001451",52,33.7233,33.7233*0.05);
+        loanService.getCredit("ylh1234202103252");
     }
 
 

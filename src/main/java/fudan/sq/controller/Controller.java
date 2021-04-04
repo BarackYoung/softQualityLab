@@ -44,9 +44,9 @@ public class Controller {
     /**
      * 批量还款
      * */
-    @PostMapping("/batchRepayment")
-    public ResponseEntity<?> batchRepaymentLoan() throws Exception {
-        return ResponseEntity.ok(loanService.batchRepaymentLoan());
+    @PostMapping("/batchRepayment/{currentDate}")
+    public ResponseEntity<?> batchRepaymentLoan(@PathVariable String currentDate) throws Exception {
+        return ResponseEntity.ok(loanService.batchRepaymentLoan(currentDate));
     }
 
     /**
@@ -94,6 +94,25 @@ public class Controller {
     public ResponseEntity<?> getTransaction(@RequestBody Map<String,String> request) throws Exception {
        return ResponseEntity.ok(loanService.getTransaction(request));
      }
+
+    /**
+     * 查看所有贷款
+     * */
+    @GetMapping("/getAllLoans")
+    public ResponseEntity<?> getAllLoans() throws Exception {
+
+        return ResponseEntity.ok(loanService.getAllLoans());
+    }
+    /**
+     * 查看用户信用等级
+     * */
+    @GetMapping("/getCredit/{customerCode}")
+    public ResponseEntity<?> getCredit(@PathVariable String customerCode) throws Exception {
+
+        return ResponseEntity.ok(loanService.getCredit(customerCode));
+    }
+
+
 
 
 }
