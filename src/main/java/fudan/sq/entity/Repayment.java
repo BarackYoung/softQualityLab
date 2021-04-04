@@ -16,6 +16,15 @@ public class Repayment {
     private double remainAmount;
     private double remainPrincipal;
     private double remainInterest;
+    private double penaltyInterest;
+
+    public double getPenaltyInterest() {
+        return penaltyInterest;
+    }
+
+    public void setPenaltyInterest(double penaltyInterest) {
+        this.penaltyInterest = penaltyInterest;
+    }
 
     public double getRemainAmount() {
         return remainAmount;
@@ -64,4 +73,5 @@ public class Repayment {
     public void setPanNum(int panNum) {
         this.panNum = panNum;
     }
+
 }
