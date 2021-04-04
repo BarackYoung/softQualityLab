@@ -100,7 +100,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
 
          String dataStr = map.get("planDate").toString();
          SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-         Date date = df.parse("2021-5-4");
+         Date date = df.parse("2021-6-4");
          Date planData = df.parse(dataStr);
         double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
          if (repaymentStatus>1.0){
@@ -191,7 +191,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 
-      Date date = df2.parse("2021-5-4 12:22:22");
+      Date date = df2.parse("2021-6-4 12:22:22");
 
 
 
