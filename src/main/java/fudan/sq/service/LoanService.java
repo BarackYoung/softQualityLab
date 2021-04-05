@@ -170,12 +170,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          returnMsg.put("message","no information");
       }
       for (Map<String,Object> map:maps){
-         /*Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
          if (repayment!=null){
             map.put("remainAmount",repayment.getRemainAmount());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
-         }*/
+         }
 
          String dataStr = map.get("planDate").toString();
          SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
