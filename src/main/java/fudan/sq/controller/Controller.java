@@ -127,7 +127,7 @@ public class Controller {
      * 购买产品
      * */
     @PostMapping("/buyProduct")
-    public ResponseEntity<?> getLoanPlan(@RequestParam("customerNum") String customerNum,
+    public ResponseEntity<?> buyProduct(@RequestParam("customerNum") String customerNum,
                                          @RequestParam("productId") int productId,
                                          @RequestParam("tradeTime") Date tradeTime,
                                          @RequestParam("purchase") int purchase) throws Exception {
