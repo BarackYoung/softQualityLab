@@ -99,6 +99,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("penaltyInterest",repayment.getPenaltyInterest());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }
 
          String dataStr = map.get("planDate").toString();
@@ -127,6 +128,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("penaltyInterest",repayment.getPenaltyInterest());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }else {
             repayment = new Repayment();
             repayment.setIouNum(map.get("iouNum").toString());
@@ -140,6 +142,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
             map.put("penaltyInterest",penaltyInterest);
             map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
             repaymentRepository.save(repayment);
          }
          i--;
