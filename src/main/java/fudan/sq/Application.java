@@ -30,11 +30,11 @@ public class Application {
              /**
               * 获取调用接口所需的login-token
               * */
-        /*Map<String,Object> res = httpUtils.httpClientPost("http://10.176.122.172:8012/sys/login/restful?username=JT2103258421&password=imbus123","");
+        Map<String,Object> res = httpUtils.httpClientPost("http://10.176.122.172:8012/sys/login/restful?username=JT2103258421&password=imbus123","");
         if (res.containsKey("token")){
             Token.token = res.get("token").toString();
 
-        }*/
+        }
         /*LoanService loanService = new LoanService();
         loanService.getClientInfo("533023199908314312");
         //loanService.getAllLoans();
@@ -54,7 +54,7 @@ public class Application {
         SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = df2.parse("2077-4-4 12:22:22");
         StockService stockService = new StockService();
-        stockService.getProperty("ylh1234202103252");
+        stockService.getProduct();
 
     }
 
