@@ -2,6 +2,7 @@ package fudan.sq.controller;
 
 
 import fudan.sq.service.LoanService;
+import fudan.sq.service.StockService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
+
+
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +32,7 @@ public class Controller {
 
     @Autowired
     LoanService loanService;
+    StockService stockService;
     @Autowired
     public Controller(LoanService loanService) {
      this.loanService = loanService;
@@ -108,6 +113,34 @@ public class Controller {
     public ResponseEntity<?> getCredit(@PathVariable String customerCode) throws Exception {
 
         return ResponseEntity.ok(loanService.getCredit(customerCode));
+    }
+    /**
+     * 获取产品
+     * */
+    @GetMapping("/getProduct")
+    public ResponseEntity<?> getProduct() throws Exception {
+
+        return ResponseEntity.ok(stockService.getProduct());
+    }
+
+    /**
+     * 购买产品
+     * */
+    @PostMapping("/buyProduct")
+    public ResponseEntity<?> getLoanPlan(@RequestParam("customerNum") String customerNum,
+                                         @RequestParam("productId") int productId,
+                                         @RequestParam("tradeTime") Date tradeTime,
+                                         @RequestParam("purchase") int purchase) throws Exception {
+        return ResponseEntity.ok(stockService.buyProduct(customerNum,productId, tradeTime,purchase));
+    }
+
+    /**
+     * 查看用户购买产品
+     * */
+    @GetMapping("/getProperties/{customerCode}")
+    public ResponseEntity<?> getProperty(@PathVariable String customerCode) throws Exception {
+
+        return ResponseEntity.ok(stockService.getProperty(customerCode));
     }
 
 

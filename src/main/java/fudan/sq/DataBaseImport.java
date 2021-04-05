@@ -131,7 +131,7 @@ public class DataBaseImport {
             //数据库创建语句
             String sql = "CREATE TABLE property("
                     + " recordID int(11), "      /*购买记录ID，由后端生成*/
-                    + " customerID int(11), "    /*客户ID，前端传入*/
+                    + " customerID VARCHAR(45), "    /*客户ID，前端传入*/
                     + " productID int(11), "     /*产品ID,与产品表中相对应*/
                     + " amount int(11), "
                     /*对于基金，为购买的金额，盈亏计算方式为 金额*利率  */

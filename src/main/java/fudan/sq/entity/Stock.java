@@ -1,44 +1,44 @@
 package fudan.sq.entity;
 
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
+@IdClass(StockId.class)
+
 public class Stock {
-    @Id
+
     //@GeneratedValue(strategy = GenerationType.AUTO)
-    private Long stockId;
-    private String stockName;
-    private int price;
+    @Id
+    private Long productId;
+    private String productName;
+    private int productPrice;
+    @Id
     private Date date;
-    private int stockType;
 
     public Long getStockId() {
-        return stockId;
+        return productId;
     }
 
     public void setStockId(Long stockId) {
-        this.stockId = stockId;
+        this.productId = stockId;
     }
 
-    public String getStockName() {
-        return stockName;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setStockName(String stockName) {
-        this.stockName = stockName;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public int getPrice() {
-        return price;
+    public int getProductPrice() {
+        return productPrice;
     }
 
-    public void setPrice(int price) {
-        this.price = price;
+    public void setProductPrice(int productPrice) {
+        this.productPrice = productPrice;
     }
 
     public Date getDate() {
@@ -47,13 +47,5 @@ public class Stock {
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public int getStockType() {
-        return stockType;
-    }
-
-    public void setStockType(int stockType) {
-        this.stockType = stockType;
     }
 }
