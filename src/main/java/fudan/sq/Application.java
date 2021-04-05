@@ -54,7 +54,7 @@ public class Application {
         SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = df2.parse("2077-4-4 12:22:22");
         StockService stockService = new StockService();
-        stockService.getProduct();
+        stockService.getProduct("股票");
 
     }
 

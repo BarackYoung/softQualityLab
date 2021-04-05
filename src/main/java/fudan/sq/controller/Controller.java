@@ -117,10 +117,10 @@ public class Controller {
     /**
      * 获取产品
      * */
-    @GetMapping("/getProduct")
-    public ResponseEntity<?> getProduct() throws Exception {
+    @GetMapping("/getProduct/{productType}")
+    public ResponseEntity<?> getProduct(@PathVariable String productType) throws Exception {
 
-        return ResponseEntity.ok(stockService.getProduct());
+        return ResponseEntity.ok(stockService.getProduct(productType));
     }
 
     /**

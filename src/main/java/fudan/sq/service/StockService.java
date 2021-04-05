@@ -62,105 +62,99 @@ public class StockService {
         return conn;
     }
 
-    public List<Map<String, Object>> getProduct() throws SQLException {
+    public List<Map<String, Object>> getProduct(String productType) throws SQLException {
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
         List<Map<String, Object>> stocks = new ArrayList<>();
-        String findProductName = "SELECT distinct productId FROM stock.stock";
-        ResultSet productNameSet = statement.executeQuery(findProductName);
-        List<Integer> productName = new ArrayList<>();
-        while (productNameSet.next()) {
-            //System.out.println("成功");
-            System.out.println(productNameSet.getInt("productId"));
-            productName.add(productNameSet.getInt("productId"));
-        }
+        if(productType.equals("股票")){
+            String findProductName = "SELECT distinct productId FROM stock.stock";
+            ResultSet productNameSet = statement.executeQuery(findProductName);
+            List<Integer> productName = new ArrayList<>();
+            while (productNameSet.next()) {
+                //System.out.println("成功");
+                System.out.println(productNameSet.getInt("productId"));
+                productName.add(productNameSet.getInt("productId"));
+            }
 
-        for (int stockName : productName) {
-            String sql = "SELECT * FROM stock.stock where productId = " + stockName + "";
-            System.out.println(sql);
-            ResultSet productSet = statement.executeQuery(sql);
-            while (productSet.next()) {
-                Map<String, Object> stock = new HashMap<>();
-                stock.put("productName", productSet.getString("productName"));
-                stock.put("productPrice", productSet.getDouble("productPrice"));
-                stock.put("date", productSet.getDate("date"));
-                stock.put("productType", "股票");
-                stock.put("productId", productSet.getInt("productId"));
+            for (int stockName : productName) {
+                String sql = "SELECT * FROM stock.stock where productId = " + stockName + "";
+                System.out.println(sql);
+                ResultSet productSet = statement.executeQuery(sql);
+
+                while (productSet.next()) {
+                    Map<String, Object> stock = new HashMap<>();
+                    stock.put("productName", productSet.getString("productName"));
+                    stock.put("productPrice", productSet.getDouble("productPrice"));
+                    stock.put("date", productSet.getDate("date"));
+                    stock.put("productType", "股票");
+                    stock.put("productId", productSet.getInt("productId"));
                 /*System.out.println(stock.get("date"));
                 System.out.println(stock.get("productName"));
                 System.out.println(stock.get("price"));
                 System.out.println(stock.get("productId"));*/
-                stocks.add(stock);
+                    stocks.add(stock);
+                }
             }
         }
-        String findFundName = "SELECT distinct productId FROM stock.fund";
-        ResultSet fundNameSet = statement.executeQuery(findFundName);
-        List<Integer> fundName = new ArrayList<>();
-        while (fundNameSet.next()) {
-            //System.out.println("成功");
-            System.out.println(fundNameSet.getInt("productId"));
-            fundName.add(fundNameSet.getInt("productId"));
-        }
-        for (int fundId : fundName) {
-            String sql = "SELECT * FROM stock.fund where productId = " + fundId + "";
-            System.out.println(sql);
-            ResultSet productSet = statement.executeQuery(sql);
-            while (productSet.next()) {
-                Map<String, Object> stock = new HashMap<>();
-                stock.put("productName", productSet.getString("productName"));
-                stock.put("rate", productSet.getDouble("rate"));
-                stock.put("date", productSet.getDate("date"));
-                stock.put("productType", "基金");
-                stock.put("productId", productSet.getInt("productId"));
+        else if(productType.equals("基金")){
+            String findFundName = "SELECT distinct productId FROM stock.fund";
+            ResultSet fundNameSet = statement.executeQuery(findFundName);
+            List<Integer> fundName = new ArrayList<>();
+            while (fundNameSet.next()) {
+                //System.out.println("成功");
+                System.out.println(fundNameSet.getInt("productId"));
+                fundName.add(fundNameSet.getInt("productId"));
+            }
+            for (int fundId : fundName) {
+                String sql = "SELECT * FROM stock.fund where productId = " + fundId + "";
+                System.out.println(sql);
+                ResultSet productSet = statement.executeQuery(sql);
+                while (productSet.next()) {
+                    Map<String, Object> stock = new HashMap<>();
+                    stock.put("productName", productSet.getString("productName"));
+                    stock.put("rate", productSet.getDouble("rate"));
+                    stock.put("date", productSet.getDate("date"));
+                    stock.put("productType", "基金");
+                    stock.put("productId", productSet.getInt("productId"));
                /* System.out.println(stock.get("date"));
                 System.out.println(stock.get("productName"));
                 System.out.println(stock.get("price"));
                 System.out.println(stock.get("productId"));*/
-                stocks.add(stock);
+                    stocks.add(stock);
+                }
             }
         }
-
-        String findRegularName = "SELECT distinct productId FROM stock.regular";
-        ResultSet regularNameSet = statement.executeQuery(findRegularName);
-        List<Integer> regularName = new ArrayList<>();
-        while (regularNameSet.next()) {
-            //System.out.println("成功");
-            System.out.println(regularNameSet.getInt("productId"));
-            regularName.add(regularNameSet.getInt("productId"));
-        }
-        for (int regularId : regularName) {
-            String sql = "SELECT * FROM stock.regular where productId = " + regularId + "";
-            System.out.println(sql);
-            ResultSet productSet = statement.executeQuery(sql);
-            while (productSet.next()) {
-                Map<String, Object> stock = new HashMap<>();
-                stock.put("productName", productSet.getString("productName"));
-                stock.put("productPrice", productSet.getInt("productPrice"));
-                stock.put("period", productSet.getInt("period"));
-                stock.put("productType", "定期");
-                stock.put("productId", productSet.getInt("productId"));
-                stock.put("rate", productSet.getDouble("rate"));
+        else{
+            String findRegularName = "SELECT distinct productId FROM stock.regular";
+            ResultSet regularNameSet = statement.executeQuery(findRegularName);
+            List<Integer> regularName = new ArrayList<>();
+            while (regularNameSet.next()) {
+                //System.out.println("成功");
+                System.out.println(regularNameSet.getInt("productId"));
+                regularName.add(regularNameSet.getInt("productId"));
+            }
+            for (int regularId : regularName) {
+                String sql = "SELECT * FROM stock.regular where productId = " + regularId + "";
+                System.out.println(sql);
+                ResultSet productSet = statement.executeQuery(sql);
+                while (productSet.next()) {
+                    Map<String, Object> stock = new HashMap<>();
+                    stock.put("productName", productSet.getString("productName"));
+                    stock.put("productPrice", productSet.getInt("productPrice"));
+                    stock.put("period", productSet.getInt("period"));
+                    stock.put("productType", "定期");
+                    stock.put("productId", productSet.getInt("productId"));
+                    stock.put("rate", productSet.getDouble("rate"));
                /* System.out.println(stock.get("date"));
                 System.out.println(stock.get("productName"));
                 System.out.println(stock.get("price"));
                 System.out.println(stock.get("productId"));*/
-                stocks.add(stock);
+                    stocks.add(stock);
+                }
             }
         }
 
 
-       /* for(int i = 0;i<stocks.size();i++){
-            if(stocks.get(i).get("productType").equals("定期")){
-                System.out.println("期限："+stocks.get(i).get("period"));
-            }
-            *//*System.out.println(stocks.get(i).get("date"));
-            System.out.println(stocks.get(i).get("productName"));
-            System.out.println(stocks.get(i).get("price"));
-            System.out.println(stocks.get(i).get("productId"));*//*
-        }*/
-
-
-        //Map<String,Object> returnMsg = new HashMap<>();
         System.out.println(stocks);
 
 
@@ -174,7 +168,19 @@ public class StockService {
 
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
-        List<Map<String,Object>> products = getProduct();
+        List<Map<String,Object>> stockProducts = getProduct("股票");
+        List<Map<String,Object>> fundProducts = getProduct("基金");
+        List<Map<String,Object>> regularProducts = getProduct("定期");
+        List<Map<String,Object>> products = new ArrayList<>();
+        for(Map stock:stockProducts){
+            products.add(stock);
+        }
+        for(Map fund:fundProducts){
+            products.add(fund);
+        }
+        for(Map regular:regularProducts){
+            products.add(regular);
+        }
         String productType = "";
         for(Map product:products){
             int id = (int) product.get("productId");
