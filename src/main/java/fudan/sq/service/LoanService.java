@@ -956,7 +956,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                isMatch=false;
                continue;
             }
-            if (map.containsKey(entry.getKey())&&map.get(entry.getKey()).toString().contains(entry.getValue())){
+            if (map.containsKey(entry.getKey())&&!map.get(entry.getKey()).toString().contains(entry.getValue())){
                isMatch=false;
             }
          }
