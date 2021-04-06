@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping
 public class Controller {
 
     Logger logger = LoggerFactory.getLogger(Controller.class);
@@ -32,6 +33,7 @@ public class Controller {
 
     @Autowired
     LoanService loanService;
+    @Autowired
     StockService stockService;
     @Autowired
     public Controller(LoanService loanService) {
@@ -118,6 +120,7 @@ public class Controller {
      * 获取产品
      * */
     @GetMapping("/getProduct/{productType}")
+    @ResponseBody
     public ResponseEntity<?> getProduct(@PathVariable String productType) throws Exception {
 
         return ResponseEntity.ok(stockService.getProduct(productType));

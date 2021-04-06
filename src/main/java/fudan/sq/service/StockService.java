@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import javax.annotation.Resource;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,6 +65,15 @@ public class StockService {
     }
 
     public List<Map<String, Object>> getProduct(String productType) throws SQLException {
+        if(productType.equals("1")){
+            productType = "股票";
+        }
+        else if(productType.equals("2")){
+            productType = "基金";
+        }
+        else{
+            productType = "定期";
+        }
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
         List<Map<String, Object>> stocks = new ArrayList<>();
@@ -170,7 +180,7 @@ public class StockService {
         }
 
 
-        //System.out.println(stocks);
+        System.out.println(stocks);
 
 
         return stocks;
