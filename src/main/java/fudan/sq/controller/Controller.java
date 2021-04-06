@@ -143,6 +143,15 @@ public class Controller {
         return ResponseEntity.ok(stockService.getProperty(customerCode));
     }
 
+    /**
+     * 查看用户盈亏情况
+     * */
+    @GetMapping("/getProfit/{customerCode}/{currentDate}")
+    public ResponseEntity<?> getProfit(@PathVariable String customerCode,@PathVariable String currentDate) throws Exception {
+
+        return ResponseEntity.ok(stockService.getProfit(customerCode, currentDate));
+    }
+
 
 
 

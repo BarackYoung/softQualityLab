@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.sql.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,49 +81,63 @@ public class StockService {
                 String sql = "SELECT * FROM stock.stock where productId = " + stockName + "";
                 System.out.println(sql);
                 ResultSet productSet = statement.executeQuery(sql);
-
+                List<Double> prices = new ArrayList<>();
+                List<Date> dates = new ArrayList<>();
+                Map<String, Object> stock = new HashMap<>();
+                String stockNAME = "";
                 while (productSet.next()) {
-                    Map<String, Object> stock = new HashMap<>();
-                    stock.put("productName", productSet.getString("productName"));
-                    stock.put("productPrice", productSet.getDouble("productPrice"));
-                    stock.put("date", productSet.getDate("date"));
-                    stock.put("productType", "股票");
-                    stock.put("productId", productSet.getInt("productId"));
-                /*System.out.println(stock.get("date"));
-                System.out.println(stock.get("productName"));
-                System.out.println(stock.get("price"));
-                System.out.println(stock.get("productId"));*/
-                    stocks.add(stock);
+
+                    prices.add(productSet.getDouble("productPrice"));
+                    dates.add(productSet.getDate("date"));
+
+                    stockNAME = productSet.getString("productName");
                 }
+                stock.put("productName",stockNAME);
+                stock.put("productId",stockName);
+                stock.put("price",prices);
+                stock.put("date",dates);
+                stock.put("productType", "股票");
+                stocks.add(stock);
             }
+            for(int i = 0;i<stocks.size();i++){
+                System.out.println(stocks.get(i));
+            };
         }
         else if(productType.equals("基金")){
-            String findFundName = "SELECT distinct productId FROM stock.fund";
-            ResultSet fundNameSet = statement.executeQuery(findFundName);
-            List<Integer> fundName = new ArrayList<>();
-            while (fundNameSet.next()) {
+            String findProductName = "SELECT distinct productId FROM stock.fund";
+            ResultSet productNameSet = statement.executeQuery(findProductName);
+            List<Integer> productName = new ArrayList<>();
+            while (productNameSet.next()) {
                 //System.out.println("成功");
-                System.out.println(fundNameSet.getInt("productId"));
-                fundName.add(fundNameSet.getInt("productId"));
+                System.out.println(productNameSet.getInt("productId"));
+                productName.add(productNameSet.getInt("productId"));
             }
-            for (int fundId : fundName) {
-                String sql = "SELECT * FROM stock.fund where productId = " + fundId + "";
+
+            for (int stockName : productName) {
+                String sql = "SELECT * FROM stock.fund where productId = " + stockName + "";
                 System.out.println(sql);
                 ResultSet productSet = statement.executeQuery(sql);
+                List<Double> prices = new ArrayList<>();
+                List<Date> dates = new ArrayList<>();
+                Map<String, Object> stock = new HashMap<>();
+                String stockNAME = "";
                 while (productSet.next()) {
-                    Map<String, Object> stock = new HashMap<>();
-                    stock.put("productName", productSet.getString("productName"));
-                    stock.put("rate", productSet.getDouble("rate"));
-                    stock.put("date", productSet.getDate("date"));
-                    stock.put("productType", "基金");
-                    stock.put("productId", productSet.getInt("productId"));
-               /* System.out.println(stock.get("date"));
-                System.out.println(stock.get("productName"));
-                System.out.println(stock.get("price"));
-                System.out.println(stock.get("productId"));*/
-                    stocks.add(stock);
+
+                    prices.add(productSet.getDouble("rate"));
+                    dates.add(productSet.getDate("date"));
+
+                    stockNAME = productSet.getString("productName");
                 }
+                stock.put("productName",stockNAME);
+                stock.put("productId",stockName);
+                stock.put("rate",prices);
+                stock.put("date",dates);
+                stock.put("productType", "基金");
+                stocks.add(stock);
             }
+            for(int i = 0;i<stocks.size();i++){
+                System.out.println(stocks.get(i));
+            };
         }
         else{
             String findRegularName = "SELECT distinct productId FROM stock.regular";
@@ -155,7 +170,7 @@ public class StockService {
         }
 
 
-        System.out.println(stocks);
+        //System.out.println(stocks);
 
 
         return stocks;
@@ -479,5 +494,174 @@ public class StockService {
             System.out.println(property);
         }
         return properties;
+    }
+    public List<Map<String,Object>> getProfit(String customerID,String currentDate) throws SQLException, ParseException {
+        Connection connection = getConnection();
+        List<Map<String,Object>> customerProperties = getProperty(customerID);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date date = df.parse(currentDate);
+        List<Map<String,Object>> stockMap = new ArrayList<>();
+        List<Map<String,Object>> fundMap = new ArrayList<>();
+        List<Map<String,Object>> regularMap = new ArrayList<>();
+        Statement statement = connection.createStatement();
+        int recordId;
+        int productId;
+        int amount;
+        String purchaseDay;
+        Double profit;
+        List<Map<String,Object>> stockProducts = getProduct("股票");
+        List<Map<String,Object>> fundProducts = getProduct("基金");
+        List<Map<String,Object>> regularProducts = getProduct("定期");
+        List<Map<String,Object>> products = new ArrayList<>();
+        Map<String,Object> returnMap = new HashMap<>();
+        for(Map stock:stockProducts){
+            products.add(stock);
+        }
+        for(Map fund:fundProducts){
+            products.add(fund);
+        }
+        for(Map regular:regularProducts){
+            products.add(regular);
+        }
+        String productType = "";
+        for(Map customerProperty:customerProperties){
+
+            recordId = Integer.parseInt(customerProperty.get("recordId").toString());
+            productId = Integer.parseInt(customerProperty.get("productId").toString());
+            amount = Integer.parseInt(customerProperty.get("amount").toString());
+            purchaseDay = customerProperty.get("purchaseDay").toString();
+
+            for(Map product:products){
+                int id = (int) product.get("productId");
+                if(id == productId){
+                    productType = product.get("productType").toString();
+                }
+
+            }
+            System.out.println("产品类型"+productType);
+            if(productType.equals("股票")){
+                //System.out.println(111);
+                Map<String,Object> product = new HashMap<>();
+                Double price = 0.0;
+                Double currentPrice = 0.0;
+                int priceChange =0;
+                String productName = "";
+                List<Integer> prices = new ArrayList<>();
+                String sql = "SELECT * FROM stock.stock where productId = \""+productId+"\" and date = \""+ purchaseDay +"\"";
+                ResultSet rs = statement.executeQuery(sql);
+                while(rs.next()){
+
+                    price = rs.getDouble("productPrice");
+                    System.out.println("购买日价格："+price);
+                    productName = rs.getString("productName");
+                }
+                String sql2 = "SELECT * FROM stock.stock where productId = \""+productId+"\" and date = \""+currentDate +"\"";
+                ResultSet rs2 = statement.executeQuery(sql2);
+                while(rs2.next()){
+                    currentPrice = rs2.getDouble("productPrice");
+                    System.out.println("购买日价格："+currentPrice);
+                }
+                String sql3 = "SELECT * FROM stock.stock where productId = \""+productId+"\" and date between \""+purchaseDay+"\" and \""+ currentDate+"\"";
+                ResultSet rs3 = statement.executeQuery(sql3);
+                while(rs3.next()){
+                    priceChange = rs3.getInt("productPrice");
+                    prices.add(priceChange);
+
+                }
+                System.out.println(prices);
+                profit = (currentPrice-price)*amount;
+                product.put("profit",profit);
+                product.put("productId",productId);
+                product.put("productName",productName);
+                product.put("priceChange",prices);
+                product.put("amount",amount);
+                product.put("purchaseDay",purchaseDay);
+                product.put("recordId",recordId);
+                product.put("customerId",customerID);
+                System.out.println(product);
+                stockMap.add(product);
+
+
+            }
+            else if(productType.equals("基金")){
+                Map<String,Object> product = new HashMap<>();
+                Double price = 0.0;
+                Double currentPrice = 0.0;
+                Double priceChange = 0.0;
+                String productName = "";
+                List<Double> prices = new ArrayList<>();
+                String sql = "SELECT * FROM stock.fund where productId = \""+ productId +"\" and date = \""+ purchaseDay +"\"";
+                ResultSet rs = statement.executeQuery(sql);
+                while(rs.next()){
+
+                    price = rs.getDouble("rate");
+                    System.out.println("购买日价格："+price);
+                    productName = rs.getString("productName");
+                }
+                String sql2 = "SELECT * FROM stock.fund where productId = \""+productId+"\" and date = \""+currentDate +"\"";
+                ResultSet rs2 = statement.executeQuery(sql2);
+                while(rs2.next()){
+                    currentPrice = rs2.getDouble("rate");
+                    System.out.println("购买日价格："+currentPrice);
+                }
+                String sql3 = "SELECT * FROM stock.fund where productId = \""+productId+"\" and date between \""+purchaseDay+"\" and \""+ currentDate+"\"";
+                ResultSet rs3 = statement.executeQuery(sql3);
+                while(rs3.next()){
+                    priceChange = rs3.getDouble("rate");
+
+                    prices.add(priceChange);
+
+                }
+                System.out.println(prices);
+                profit = (currentPrice-price)*amount/100;
+                product.put("profit",profit);
+                product.put("productId",productId);
+                product.put("productName",productName);
+                product.put("priceChange",prices);
+                product.put("amount",amount);
+                product.put("purchaseDay",purchaseDay);
+                product.put("recordId",recordId);
+                product.put("customerId",customerID);
+                System.out.println(product);
+                fundMap.add(product);
+            }
+            else{
+                Map<String,Object> product = new HashMap<>();
+                int price = 0;
+                int currentPrice = 0;
+                int priceChange =0;
+                Double rate = 0.0;
+                String productName = "";
+                List<Integer> prices = new ArrayList<>();
+                String sql = "SELECT * FROM stock.regular where productId = \""+ productId +"\" ";
+                ResultSet rs = statement.executeQuery(sql);
+                while(rs.next()){
+                    rate = rs.getDouble("rate");
+
+                    price = rs.getInt("productPrice");
+                    System.out.println("购买日价格："+price);
+                    productName = rs.getString("productName");
+                }
+
+                profit = price*rate*amount/100;
+                product.put("profit",profit);
+                product.put("productId",productId);
+                product.put("productName",productName);
+                product.put("priceChange",rate);
+                product.put("amount",amount);
+                product.put("purchaseDay",purchaseDay);
+                product.put("recordId",recordId);
+                product.put("customerId",customerID);
+                System.out.println(product);
+                regularMap.add(product);
+            }
+
+
+        }
+        returnMap.put("股票",stockMap);
+        returnMap.put("基金",fundMap);
+        returnMap.put("定期",regularMap);
+        System.out.println(returnMap);
+        return regularMap;
     }
 }

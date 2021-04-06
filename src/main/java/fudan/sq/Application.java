@@ -35,7 +35,7 @@ public class Application {
             Token.token = res.get("token").toString();
 
         }
-        /*LoanService loanService = new LoanService();
+        /*
         loanService.getClientInfo("533023199908314312");
         //loanService.getAllLoans();
         //loanService.getLoanPlan("L2104032001451");
@@ -47,14 +47,16 @@ public class Application {
         String time=sim.format(dd);
         //System.out.println(time);
 
-        loanService.batchRepaymentLoan("2021-06-04 15:30:30");
+
         //loanService.repayment("L2104032001451",52,33.7233,33.7233*0.05);
         loanService.getCredit("ylh1234202103252");*/
-
+        /*LoanService loanService = new LoanService();
+        loanService.batchRepaymentLoan("2021-07-04 15:30:30");
         SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = df2.parse("2077-4-4 12:22:22");
+        Date date = df2.parse("2077-4-4 12:22:22");*/
         StockService stockService = new StockService();
-        stockService.getProduct("股票");
+        //stockService.getProduct("定期");
+        stockService.getProfit("123","2021-04-03");
 
     }
 

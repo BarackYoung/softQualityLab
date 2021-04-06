@@ -165,20 +165,20 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       Object o = res.get("data");
       String json = httpUtils.gson.toJson(o);
       Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
-
       if (maps==null){
          returnMsg.put("message","no information");
       }
       for (Map<String,Object> map:maps){
-         /*Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
          if (repayment!=null){
             map.put("remainAmount",repayment.getRemainAmount());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
-         }*/
+            map.put("penaltyInterest",repayment.getPenaltyInterest());
+         }
 
          String dataStr = map.get("planDate").toString();
-         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd ");
          Date currentDate = df.parse(date);
          Date planData = df.parse(dataStr);
          double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
@@ -188,13 +188,37 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainInterest",0);
             finished.add(map);
          }else if (planData.before(currentDate)){
-            double planAmount = Double.parseDouble(map.get("remainAmount").toString());
-            double penaltyInterest = planAmount*0.05;
-            map.put("penaltyInterest",penaltyInterest);
             overdue.add(map);
          }else {
             remain.add(map);
          }
+      }
+      int i = overdue.size();
+      for (Map<String,Object> map:overdue){
+         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+         double remainAmount = Double.parseDouble(map.get("remainAmount").toString());
+         double penaltyInterest = remainAmount*0.05*i;
+         if (repayment!=null){
+            map.put("remainAmount",repayment.getRemainAmount());
+            map.put("penaltyInterest",repayment.getPenaltyInterest());
+            map.put("remainInterest",repayment.getRemainInterest());
+            map.put("remainPrincipal",repayment.getRemainPrincipal());
+         }else {
+            repayment = new Repayment();
+            repayment.setIouNum(map.get("iouNum").toString());
+            repayment.setPanNum((int) Double.parseDouble(map.get("planNum").toString()));
+            repayment.setPenaltyInterest(penaltyInterest);
+            repayment.setRemainPrincipal(Double.parseDouble(map.get("remainPrincipal").toString()));
+            repayment.setRemainInterest(penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            repayment.setRemainAmount(Double.parseDouble(map.get("remainAmount").toString())+penaltyInterest);
+            repayment.setPenaltyInterestClear(false);
+            map.put("remainAmount",Double.parseDouble(map.get("remainAmount").toString())+penaltyInterest);
+            map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
+            map.put("penaltyInterest",penaltyInterest);
+            map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            repaymentRepository.save(repayment);
+         }
+         i--;
       }
       returnMsg.put("message",res.get("message").toString());
       returnMsg.put("overdue",overdue);
@@ -571,7 +595,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             //先还罚息
             Repayment repayment = repaymentRepository.findByIouNumAndPanNum(repaymentBill.get("iouNum").toString(),(int)Double.parseDouble(repaymentBill.get("planNum").toString()));
             if (amount<remainInterest){
-               if (repayment == null){
+               /*if (repayment == null){
                   repayment = new Repayment();
                   repayment.setIouNum(repaymentBill.get("iouNum").toString());
                   repayment.setPanNum((int) Double.parseDouble(repaymentBill.get("planNum").toString()));
@@ -580,14 +604,14 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   repayment.setRemainInterest(remainInterest-amount);
                   repayment.setRemainPrincipal(remainPrincipal);
                   repaymentRepository.save(repayment);
-               }else {
+               }else {*/
                   repayment.setRemainAmount(remainAmount-amount);
                   repayment.setRemainInterest(repayment.getRemainInterest()-amount);
                   repayment.setRemainPrincipal(remainPrincipal);
                   repaymentRepository.save(repayment);
-               }
+               //}
             }else {
-               if (repayment == null){
+              /* if (repayment == null){
                   repayment = new Repayment();
                   repayment.setIouNum(repaymentBill.get("iouNum").toString());
                   repayment.setPanNum(Integer.parseInt(repaymentBill.get("planNum").toString()));
@@ -596,12 +620,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
                   repayment.setRemainInterest(0);
                   repaymentRepository.save(repayment);
-               }else {
+               }else {*/
                   repayment.setRemainAmount(remainAmount-amount);
                   repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
                   repayment.setRemainInterest(0);
                   repaymentRepository.save(repayment);
-               }
+               //}
             }
             returnMsg.put("flag",true);
             returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款成功");
