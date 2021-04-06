@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
@@ -23,6 +22,7 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 @RestController
 public class Controller {
@@ -53,6 +53,7 @@ public class Controller {
     public ResponseEntity<?> batchRepaymentLoan(@RequestBody Map<String,String> request) throws Exception {
         return ResponseEntity.ok(loanService.batchRepaymentLoan(request.get("currentDate")));
     }
+
 
     /**
      * 根据客户号获取还款列表
@@ -114,14 +115,15 @@ public class Controller {
 
         return ResponseEntity.ok(loanService.getCredit(customerCode));
     }
+
     /**
      * 获取产品
      * */
     @GetMapping("/getProduct")
     public ResponseEntity<?> getProduct() throws Exception {
-
         return ResponseEntity.ok(stockService.getProduct());
     }
+
 
     /**
      * 购买产品
@@ -139,11 +141,16 @@ public class Controller {
      * */
     @GetMapping("/getProperties/{customerCode}")
     public ResponseEntity<?> getProperty(@PathVariable String customerCode) throws Exception {
-
         return ResponseEntity.ok(stockService.getProperty(customerCode));
     }
 
 
-
+    /**
+     * 获取所有逾期订单
+     * */
+    @PostMapping("/searchOverdueLoans")
+    public ResponseEntity<?> searchOverdueLoans(@RequestBody Map<String,String> request) throws Exception {
+        return ResponseEntity.ok(loanService.searchBatchRepayment(request.get("data")));
+    }
 
 }

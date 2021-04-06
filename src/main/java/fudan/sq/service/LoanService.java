@@ -8,10 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.*;
+
 
 
 
@@ -155,9 +154,9 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       return returnMsg;
    }
 
-   public Map<String,Object> getLoanPlanByDate(String iouNum,String currentDataStr) throws Exception {
+   public List<Map<String,Object>> getOverdueLoanPlanByDate(String iouNum,String currentDataStr) throws Exception {
 //      DecimalFormat df = new DecimalFormat("#.00");
-      Map<String,Object> returnMsg = new HashMap<>();
+      Map<String,List<Map<String,Object>>> returnMsg = new HashMap<>();
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
       List<Map<String,Object>> overdue = new LinkedList<>();
       List<Map<String,Object>> remain = new LinkedList<>();
@@ -166,7 +165,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       String json = httpUtils.gson.toJson(o);
       Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
       if (maps==null){
-         returnMsg.put("message","no information");
+         return null;
       }
       for (Map<String,Object> map:maps){
          Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
@@ -223,18 +222,9 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          }
          i--;
       }
-      returnMsg.put("message",res.get("message").toString());
-      returnMsg.put("overdue",overdue);
-      returnMsg.put("remain",remain);
-      returnMsg.put("finished",finished);
-      System.out.println(returnMsg);
-      return returnMsg;
+      return overdue;
    }
-   /**
-    * 获取还款计划
-    * repaymentStatus:1（未还清） 2（已还清）
-    * date：当前日期
-    * */
+
 //   public Map<String,Object> getLoanPlanByDate(String iouNum,String date) throws Exception {
 //      Map<String,Object> returnMsg = new HashMap<>();
 //      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
@@ -335,7 +325,6 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款失败,没有找到订单");
          return returnMsg;
       }
-
       SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
       SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -530,7 +519,6 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                  logger.info(repayment.toString());
                  return returnMsg;
               }
-
          }else {
             /**
              * 全额还款
@@ -562,422 +550,106 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          }
       }
    }
-
-   public Map<String,Object> repaymentOverdue(String iouNum,int id,double amount,String currentDate) throws Exception {
-      Map<String,Object> res = getLoanPlanByDate(iouNum,currentDate);
-      logger.info("取得的订单:"+res);
-      Object o1 = res.get("overdue");
-      String json = httpUtils.gson.toJson(o1);
-      Map<String ,Object>[] overdueBills = httpUtils.gson.fromJson(json,Map[].class);
-      Object o2 = res.get("remain");
-      String json2 = httpUtils.gson.toJson(o2);
-      Map<String ,Object>[] remainBills = httpUtils.gson.fromJson(json2,Map[].class);
-
-      Map<String,Object> returnMsg = new HashMap<>();
-      Map<String,Object> repaymentBill = new HashMap<>();
-      for (Map<String,Object> map:overdueBills){
-         double planNum = Double.parseDouble(map.get("planNum").toString());
-         logger.info("planId:"+planNum+";id:"+id);
-         /*if (planNum==id){
-            //还款
-            repaymentBill = map;
-            break;
-         }*/
-         repaymentBill = map;
-      }
-
-      logger.info("正在还得账单："+repaymentBill);
-      if (repaymentBill.size()==0){
-         returnMsg.put("flag",false);
-         returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款失败,没有找到订单");
-         return returnMsg;
-      }
-
-      SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-      SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      //Date date = new Date(System.currentTimeMillis());
-
-      /*String currentDate2 = df2.parse(currentDate).toString();
-      SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-      Date date2 = new Date();
-      date2 = sdf.parse(currentDate2);
-      System.out.println("当前时间："+date2);*/
-      Date date = df2.parse("2077-4-4 12:22:22");
-
-
-
-
-      Map<String,Object> loanPlanDto = new HashMap<>();
-
-      double compoundInterest = 0;
-      Object creatTime = repaymentBill.get("creatTime");
-      double creator = 0;
-//      String currentDate = df2.format(new Date(System.currentTimeMillis()));
-
-      //currentDate = repaymentBill.get("planDate").toString()+" 11:00:18";
-      Date currentDate2 = df.parse(currentDate);
-      int id_ = (int) Double.parseDouble(repaymentBill.get("id").toString());
-      String iouNum_ = iouNum;
-      int payMethod = 2;
-      double penaltyInterest = Double.parseDouble(repaymentBill.get("penaltyInterest").toString());
-      double planAmount = Double.parseDouble(repaymentBill.get("planAmount").toString());
-      Object planDate = repaymentBill.get("planDate");
-      double planInterest = Double.parseDouble(repaymentBill.get("planInterest").toString());
-      int planNum = (int) Double.parseDouble(repaymentBill.get("planNum").toString());
-      double planPrincipal = Double.parseDouble(repaymentBill.get("planPrincipal").toString());
-      double remainAmount = Double.parseDouble(repaymentBill.get("remainAmount").toString());
-      double remainInterest = Double.parseDouble(repaymentBill.get("remainInterest").toString());
-      double remainPrincipal = Double.parseDouble(repaymentBill.get("remainPrincipal").toString());
-      int repaymentStatus = 1;
-      String transactionCode = "";
-      String updateTime = df2.format(new Date(System.currentTimeMillis()));
-      double updater = 0;
-
-      String dataStr = repaymentBill.get("planDate").toString();
-
-      Date planData = df.parse(dataStr);
-
-
-      if (planData.before(currentDate2)) {
-         /**
-          * 过期订单
-          * */
-         //double should_penaltyInterest = remainAmount * 0.5;
-         if (amount < remainAmount) {
-            /**
-             * 部分还款
-             * */
-            //先还罚息
-            Repayment repayment = repaymentRepository.findByIouNumAndPanNum(repaymentBill.get("iouNum").toString(),(int)Double.parseDouble(repaymentBill.get("planNum").toString()));
-            if (amount<remainInterest){
-               if (repayment == null){
-                  repayment = new Repayment();
-                  repayment.setIouNum(repaymentBill.get("iouNum").toString());
-                  repayment.setPanNum((int) Double.parseDouble(repaymentBill.get("planNum").toString()));
-                  repayment.setPenaltyInterest(penaltyInterest);
-                  repayment.setRemainAmount(remainAmount-amount);
-                  repayment.setRemainInterest(remainInterest-amount);
-                  repayment.setRemainPrincipal(remainPrincipal);
-                  repaymentRepository.save(repayment);
-               }else {
-                  repayment.setRemainAmount(remainAmount-amount);
-                  repayment.setRemainInterest(repayment.getRemainInterest()-amount);
-                  repayment.setRemainPrincipal(remainPrincipal);
-                  repaymentRepository.save(repayment);
-               }
-            }else {
-               if (repayment == null){
-                  repayment = new Repayment();
-                  repayment.setIouNum(repaymentBill.get("iouNum").toString());
-                  repayment.setPanNum(Integer.parseInt(repaymentBill.get("planNum").toString()));
-                  repayment.setPenaltyInterest(remainAmount * 0.05);
-                  repayment.setRemainAmount(remainAmount-amount);
-                  repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
-                  repayment.setRemainInterest(0);
-                  repaymentRepository.save(repayment);
-               }else {
-                  repayment.setRemainAmount(remainAmount-amount);
-                  repayment.setRemainPrincipal(remainPrincipal-(amount-repayment.getRemainInterest()));
-                  repayment.setRemainInterest(0);
-                  repaymentRepository.save(repayment);
-               }
-            }
-            returnMsg.put("flag",true);
-            returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款成功");
-            returnMsg.put("data",repayment);
-            return returnMsg;
-         } else {
-            /**
-             * 全额还款
-             * */
-            loanPlanDto.put("compoundInterest", compoundInterest);
-            loanPlanDto.put("creatTime", creatTime);
-            loanPlanDto.put("creator", creator);
-            loanPlanDto.put("currentDate", currentDate);
-            loanPlanDto.put("id", id_);
-            loanPlanDto.put("iouNum", iouNum);
-            loanPlanDto.put("payMethod", payMethod);
-            loanPlanDto.put("penaltyInterest", penaltyInterest);
-            loanPlanDto.put("planAmount", planAmount);
-            loanPlanDto.put("planDate", planDate);
-            loanPlanDto.put("planInterest", planInterest);
-            loanPlanDto.put("planNum", planNum);
-            loanPlanDto.put("planPrincipal", planPrincipal);
-            loanPlanDto.put("remainAmount", remainAmount);
-            loanPlanDto.put("remainInterest", remainInterest);
-            loanPlanDto.put("remainPrincipal", remainPrincipal);
-            loanPlanDto.put("repaymentStatus", repaymentStatus);
-            loanPlanDto.put("transactionCode", transactionCode);
-            loanPlanDto.put("updateTime", updateTime);
-            loanPlanDto.put("updater", updater);
-            Map<String, Object> result = httpUtils.doPut("http://10.176.122.172:8012/loan/repayment", httpUtils.gson.toJson(loanPlanDto));
-            logger.info("还款结果：" + result);
-            return result;
-         }
-      } else {
-         /**
-          * 非逾期订单
-          * */
-         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(iouNum,planNum);
-         if (amount<remainAmount){
-            /**
-             * 部分还款
-             * */
-            double MyRemainAmount;
-            if (repayment!=null){
-               MyRemainAmount = repayment.getRemainAmount();
-            }else {
-               MyRemainAmount = Double.parseDouble(repaymentBill.get("remainAmount").toString());
-            }
-            if (amount>=MyRemainAmount){
-               //全额还款
-               loanPlanDto.put("compoundInterest", compoundInterest);
-               loanPlanDto.put("creatTime", creatTime);
-               loanPlanDto.put("creator", creator);
-               loanPlanDto.put("currentDate", currentDate);
-               loanPlanDto.put("id", id_);
-               loanPlanDto.put("iouNum", iouNum);
-               loanPlanDto.put("payMethod", payMethod);
-               loanPlanDto.put("penaltyInterest", penaltyInterest);
-               loanPlanDto.put("planAmount", planAmount);
-               loanPlanDto.put("planDate", planDate);
-               loanPlanDto.put("planInterest", planInterest);
-               loanPlanDto.put("planNum", planNum);
-               loanPlanDto.put("planPrincipal", planPrincipal);
-               loanPlanDto.put("remainAmount", remainAmount);
-               loanPlanDto.put("remainInterest", remainInterest);
-               loanPlanDto.put("remainPrincipal", remainPrincipal);
-               loanPlanDto.put("repaymentStatus", repaymentStatus);
-               loanPlanDto.put("transactionCode", transactionCode);
-               loanPlanDto.put("updateTime", updateTime);
-               loanPlanDto.put("updater", updater);
-               Map<String, Object> result = httpUtils.doPut("http://10.176.122.172:8012/loan/repayment", httpUtils.gson.toJson(loanPlanDto));
-               logger.info("还款结果：" + result);
-               return result;
-            }else {
-               //部分还款
-               double remain = MyRemainAmount-amount;
-               if (repayment==null){
-                  repayment = new Repayment();
-                  repayment.setIouNum(iouNum);
-                  repayment.setPanNum(planNum);
-               }
-               if (amount<remainInterest){
-                  repayment.setRemainAmount(remain);
-                  repayment.setRemainInterest(remainInterest-amount);
-                  repayment.setRemainPrincipal(remainPrincipal);
-                  repayment.setPenaltyInterest(0);
-               }else {
-                  repayment.setRemainAmount(remain);
-                  repayment.setRemainPrincipal(remain);
-                  repayment.setRemainInterest(0);
-               }
-               repaymentRepository.save(repayment);
-               returnMsg.put("flag",true);
-               returnMsg.put("code","2000.0");
-               returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款成功");
-               returnMsg.put("data",repayment);
-               logger.info(repayment.toString());
-               return returnMsg;
-            }
-         }else {
-            /**
-             * 全额还款
-             * */
-            loanPlanDto.put("compoundInterest", compoundInterest);
-            loanPlanDto.put("creatTime", creatTime);
-            loanPlanDto.put("creator", creator);
-            loanPlanDto.put("currentDate", currentDate);
-            loanPlanDto.put("id", id_);
-            loanPlanDto.put("iouNum", iouNum);
-            loanPlanDto.put("payMethod", payMethod);
-            loanPlanDto.put("penaltyInterest", penaltyInterest);
-            loanPlanDto.put("planAmount", planAmount);
-            loanPlanDto.put("planDate", planDate);
-            loanPlanDto.put("planInterest", planInterest);
-            loanPlanDto.put("planNum", planNum);
-            loanPlanDto.put("planPrincipal", planPrincipal);
-            loanPlanDto.put("remainAmount", remainAmount);
-            loanPlanDto.put("remainInterest", remainInterest);
-            loanPlanDto.put("remainPrincipal", remainPrincipal);
-            loanPlanDto.put("repaymentStatus", repaymentStatus);
-            loanPlanDto.put("transactionCode", transactionCode);
-            loanPlanDto.put("updateTime", updateTime);
-            loanPlanDto.put("updater", updater);
-            Map<String, Object> result = httpUtils.doPut("http://10.176.122.172:8012/loan/repayment", httpUtils.gson.toJson(loanPlanDto));
-            logger.info("还款结果：" + result);
-            repaymentRepository.delete(repayment);
-            return result;
-         }
-      }
-   }
-
-
 
    /**
-    * 日终结算
-    */
-   public Map<String, Object> batchRepaymentLoan(String currentDate) throws Exception {
+    * 返回可以日终结算的所有订单
+    * */
+   public List<Map<String,Object>> searchBatchRepayment(String dataStr) throws Exception {
       Map<String, Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22orderBy%22:%22order+by+b.updateTime+desc%22%7D");
-      Map<String, Object> returnMsg = new HashMap<>();
-      List<String> list = new LinkedList<>();
-      List<String> iouNums = new ArrayList<>();
-      List<Map<String, Object>> toRepay = new LinkedList<>();
-
+      List<Map<String,String>> iouNumsAndCustomerCode = new LinkedList<>();
       if (res.get("total") == null) {
-         returnMsg.put("result", new LinkedList<>());
+         return null;
       }
       Object o = res.get("list");
       String json = httpUtils.gson.toJson(o);
       Map<String, Object>[] maps1 = httpUtils.gson.fromJson(json, Map[].class);
       for (Map map : maps1) {
          String iouNum = map.get("iouNum").toString();
-         iouNums.add(iouNum);
+         String customerCode = map.get("customerCode").toString();
+         Map<String,String> temp = new HashMap<>();
+         temp.put("iouNum",iouNum);
+         temp.put("customerCode",customerCode);
+         iouNumsAndCustomerCode.add(temp);
       }
-      SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-      SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      //Date date = new Date(System.currentTimeMillis());
-      for (String iouNum : iouNums) {
-         Map<String,Object> res2 = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
-         Object o4 = res2.get("data");
-         String loanJson = httpUtils.gson.toJson(o4);
-         Map<String, Object>[] loanMap = httpUtils.gson.fromJson(loanJson, Map[].class);
-
-        /* Map<String,Object> res4 = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22orderBy%22:%22order+by+b.updateTime+desc%22%7D");
-         Object o5 = res4.get("list");
-         String customerJson = httpUtils.gson.toJson(o5);
-         Map<String,Object>[] customers = httpUtils.gson.fromJson(customerJson,Map[].class);
-         String customerCode = "";
-         for(Map customer:customers){
-            if(customer.get("iouNum").toString().equals(iouNum)){
-               customerCode = customer.get("customerCode").toString();
-            }
-         }*/
-         Map<String, Object> loanDetails = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/" + iouNum);
-         Object o2 = loanDetails.get("data");
-         String loanJson2 = httpUtils.gson.toJson(o2);
-         Map<String, Object> loanMap2 = httpUtils.gson.fromJson(loanJson2, Map.class);
-         String accountNum = loanMap2.get("accountNum").toString();
-         String customerCode = loanMap2.get("customerCode").toString();
-
-
-
-         Map<String,Object> res3 = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode="+customerCode);
-
-         Object o6 = res3.get("data");
-         String accountJson = httpUtils.gson.toJson(o6);
-         Map<String, Object>[] customerMap = httpUtils.gson.fromJson(accountJson, Map[].class);
-         Object account = customerMap[0].get("accountDtos");
-         String accountDetail = httpUtils.gson.toJson(account);
-         Map<String, Object>[] accountMap = httpUtils.gson.fromJson(accountDetail, Map[].class);
-         Double balance = 0.0;
-         for (Map accountMaps : accountMap) {
-            if (accountMaps.get("accountNum").toString().equals(accountNum)) {
-               balance = Double.parseDouble(accountMaps.get("balance").toString());
-            }
+      List<Map<String,Object>> allOverdue = new LinkedList<>();
+      for (Map<String,String> map:iouNumsAndCustomerCode){
+         List<Map<String,Object>> temp = getOverdueLoanPlanByDate(map.get("iouNum"),dataStr);
+         for (Map<String,Object> map1:temp){
+            map1.put("customerCode",map.get("customerCode"));
          }
-         logger.info("balance"+balance);
-
-         for(int i = 0;i<loanMap.length;i++){
-            String id_ = loanMap[i].get("id").toString();
-            int id = (int)Double.parseDouble(id_);
-            String date = loanMap[i].get("planDate").toString();
-            Double remainAmount = Double.parseDouble(loanMap[i].get("remainAmount").toString());
-            Date planDate = df.parse(date);
-            Date currentDate2 = df.parse(currentDate);
-            if(planDate.before(currentDate2)){
-               Double penalty = remainAmount * 0.05;
-               if(balance<penalty){
-                  returnMsg = repaymentOverdue(iouNum,i,0,currentDate);
-
-               }
-               else if(balance>=penalty&balance<remainAmount){
-                  returnMsg = repaymentOverdue(iouNum,i,penalty,currentDate);
-
-               }
-               else{
-                  returnMsg = repaymentOverdue(iouNum,i,remainAmount,currentDate);
-               }
-
-            }
-            else{
-               if(balance<remainAmount){
-                  returnMsg = repaymentOverdue(iouNum,i,0,currentDate);
-
-               }
-               else{
-                  returnMsg = repaymentOverdue(iouNum,i,remainAmount,currentDate);
-               }
-
-            }
-
-         }
-
-
-
-            }
-
-
-
-
-
-
-
-
-      logger.debug("批量还款返回结果：" + returnMsg);
-      return returnMsg;
+         allOverdue.addAll(temp);
+      }
+     return allOverdue;
    }
+
+
+   public double getBalanceByCustomerCode(String customerCode) throws Exception {
+      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode="+customerCode);
+      Object o = res.get("data");
+      String json = httpUtils.gson.toJson(o);
+      Map<String, Object>[] maps = httpUtils.gson.fromJson(json, Map[].class);
+      Double balance = 0.0;
+      for (Map<String,Object> map:maps){
+         Object dtos = map.get("accountDtos");
+         String dtosJson = httpUtils.gson.toJson(dtos);
+         Map<String, Object>[] dtoMaps = httpUtils.gson.fromJson(dtosJson, Map[].class);
+         for (Map<String,Object> dto:dtoMaps){
+            if (dto.containsKey("balance")){
+               balance+=Double.parseDouble(dto.get("balance").toString());
+            }
+         }
+      }
+     return balance;
+   }
+   /**
+    * 日终结算
+    */
+   public List<Map<String, Object>> batchRepaymentLoan(String currentDate) throws Exception {
+     List<Map<String,Object>> allLoans = searchBatchRepayment(currentDate);
+     List<Map<String,Object>> overDueRePaymentResult = new LinkedList<>();
+     //遍历，并一一还款
+      for (Map<String,Object> loanMap:allLoans){
+         String customerCode = loanMap.get("customerCode").toString();
+         //根据客户号获取客户账户余额
+         Double balance = getBalanceByCustomerCode(customerCode);
+         String iouNum = loanMap.get("iouNum").toString();
+         int planNum = (int) Double.parseDouble(loanMap.get("planNum").toString());
+         Map<String,Object> res = repayment(iouNum,planNum,balance);
+         res.put("customerCode",customerCode);
+         res.put("balance",balance);
+         overDueRePaymentResult.add(res);
+      }
+      return overDueRePaymentResult;
+   }
+
+
 
    /**
     * 查询所有贷款信息
     * */
-   public Map<String,Object> getAllLoans() throws Exception{
+   public List<Map<String,Object>> getAllLoans() throws Exception{
       Map<String, Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan?pageNum=0&pageSize=0&params=%7B%22orderBy%22:%22order+by+b.updateTime+desc%22%7D");
-      Map<String, Object> returnMsg = new HashMap<>();
-      //List<String> list = new LinkedList<>();
       List<String> iouNums = new ArrayList<>();
-      //List<Map<String, Object>> toRepay = new LinkedList<>();
-      List<Map<String, Object>> overdues = new ArrayList<>();
-      List<Map<String, Object>> finisheds = new ArrayList<>();
-      List<Map<String, Object>> remains = new ArrayList<>();
 
       if (res.get("total") == null) {
-         returnMsg.put("result", new LinkedList<>());
+         return null;
       }
       Object o = res.get("list");
       String json = httpUtils.gson.toJson(o);
       Map<String, Object>[] maps1 = httpUtils.gson.fromJson(json, Map[].class);
       for (Map map : maps1) {
          String iouNum = map.get("iouNum").toString();
-         System.out.println(iouNum);
          iouNums.add(iouNum);
       }
+      List<Map<String,Object>> allLoans = new LinkedList<>();
       for(String iouNum:iouNums){
-         /*Map<String, Object> loanPlans = getLoanPlan(iouNum);
-         overdues = (List<Map<String, Object>>) loanPlans.get("overdue");
-         finisheds = (List<Map<String, Object>>) loanPlans.get("finished");
-         remains = (List<Map<String, Object>>) loanPlans.get("remain");*/
          Map<String,Object> result = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
          Object object = result.get("data");
          String data = httpUtils.gson.toJson(object);
          Map<String, Object>[] map = httpUtils.gson.fromJson(data, Map[].class);
-         if(map.length!=0){
-            returnMsg.put("result",map);
-            System.out.println(result);
-         }
-
-
+         allLoans.addAll(Arrays.asList(map));
       }
-      System.out.println(returnMsg);
-      /*System.out.println(iouNums);
-      System.out.println("逾期：");
-      System.out.println(overdues);
-      System.out.println("已还：");
-      System.out.println(finisheds);
-      System.out.println("待还：");
-      System.out.println(remains);*/
-
-      return returnMsg;
+      return allLoans;
    }
 
 
@@ -1089,10 +761,6 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          returnMsg.put("credit",3);
       }
       System.out.println(returnMsg.get("credit"));
-
-
-
-
       return returnMsg;
    }
 

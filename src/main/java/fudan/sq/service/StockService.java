@@ -248,7 +248,7 @@ public class StockService {
                                     return returnMsg;
 
                                 } else if (balance >= penalty & balance < remainAmount) {
-                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
+//                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
 
                                 }
 
@@ -339,7 +339,7 @@ public class StockService {
                                     return returnMsg;
 
                                 } else if (balance >= penalty & balance < remainAmount) {
-                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
+//                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
 
                                 }
 
@@ -422,7 +422,7 @@ public class StockService {
                                 return returnMsg;
 
                             } else if (balance >= penalty & balance < remainAmount) {
-                                loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
+//                                loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
 
                             }
 
