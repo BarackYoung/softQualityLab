@@ -99,6 +99,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("penaltyInterest",repayment.getPenaltyInterest());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }
 
          String dataStr = map.get("planDate").toString();
@@ -127,6 +128,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("penaltyInterest",repayment.getPenaltyInterest());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }else {
             repayment = new Repayment();
             repayment.setIouNum(map.get("iouNum").toString());
@@ -140,6 +142,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
             map.put("penaltyInterest",penaltyInterest);
             map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
             repaymentRepository.save(repayment);
          }
          i--;
@@ -151,12 +154,9 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       System.out.println(returnMsg);
       return returnMsg;
    }
-   /**
-    * 获取还款计划
-    * repaymentStatus:1（未还清） 2（已还清）
-    * date：当前日期
-    * */
-   public Map<String,Object> getLoanPlanByDate(String iouNum,String date) throws Exception {
+
+   public Map<String,Object> getLoanPlanByDate(String iouNum,String currentDataStr) throws Exception {
+//      DecimalFormat df = new DecimalFormat("#.00");
       Map<String,Object> returnMsg = new HashMap<>();
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
       List<Map<String,Object>> overdue = new LinkedList<>();
@@ -169,17 +169,20 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
          returnMsg.put("message","no information");
       }
       for (Map<String,Object> map:maps){
+
          Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
          if (repayment!=null){
             map.put("remainAmount",repayment.getRemainAmount());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("penaltyInterest",repayment.getPenaltyInterest());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }
 
+
          String dataStr = map.get("planDate").toString();
-         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd ");
-         Date currentDate = df.parse(date);
+         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+         Date currentDate = df.parse(currentDataStr);
          Date planData = df.parse(dataStr);
          double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
          if (repaymentStatus>1.0){
@@ -203,6 +206,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("penaltyInterest",repayment.getPenaltyInterest());
             map.put("remainInterest",repayment.getRemainInterest());
             map.put("remainPrincipal",repayment.getRemainPrincipal());
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
          }else {
             repayment = new Repayment();
             repayment.setIouNum(map.get("iouNum").toString());
@@ -216,6 +220,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             map.put("remainPrincipal",Double.parseDouble(map.get("remainPrincipal").toString()));
             map.put("penaltyInterest",penaltyInterest);
             map.put("remainInterest",penaltyInterest+Double.parseDouble(map.get("remainInterest").toString()));
+            map.put("isPenaltyInterestClear",repayment.isPenaltyInterestClear());
             repaymentRepository.save(repayment);
          }
          i--;
@@ -227,6 +232,58 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       System.out.println(returnMsg);
       return returnMsg;
    }
+   /**
+    * 获取还款计划
+    * repaymentStatus:1（未还清） 2（已还清）
+    * date：当前日期
+    * */
+//   public Map<String,Object> getLoanPlanByDate(String iouNum,String date) throws Exception {
+//      Map<String,Object> returnMsg = new HashMap<>();
+//      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum="+iouNum);
+//      List<Map<String,Object>> overdue = new LinkedList<>();
+//      List<Map<String,Object>> remain = new LinkedList<>();
+//      List<Map<String,Object>> finished = new LinkedList<>();
+//      Object o = res.get("data");
+//      String json = httpUtils.gson.toJson(o);
+//      Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+//
+//      if (maps==null){
+//         returnMsg.put("message","no information");
+//      }
+//      for (Map<String,Object> map:maps){
+//         Repayment repayment = repaymentRepository.findByIouNumAndPanNum(map.get("iouNum").toString(),(int) Double.parseDouble(map.get("planNum").toString()));
+//         if (repayment!=null){
+//            map.put("remainAmount",repayment.getRemainAmount());
+//            map.put("remainPrincipal",repayment.getRemainPrincipal());
+//            map.put("remainInterest",repayment.getRemainInterest());
+//         }
+//
+//         String dataStr = map.get("planDate").toString();
+//         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//         Date currentDate = df.parse(date);
+//         Date planData = df.parse(dataStr);
+//         double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
+//         if (repaymentStatus>1.0){
+//            map.put("remainAmount",0);
+//            map.put("remainPrincipal",0);
+//            map.put("remainInterest",0);
+//            finished.add(map);
+//         }else if (planData.before(currentDate)){
+//            double planAmount = Double.parseDouble(map.get("remainAmount").toString());
+//            double penaltyInterest = planAmount*0.05;
+//            map.put("penaltyInterest",penaltyInterest);
+//            overdue.add(map);
+//         }else {
+//            remain.add(map);
+//         }
+//      }
+//      returnMsg.put("message",res.get("message").toString());
+//      returnMsg.put("overdue",overdue);
+//      returnMsg.put("remain",remain);
+//      returnMsg.put("finished",finished);
+//      System.out.println(returnMsg);
+//      return returnMsg;
+//   }
 
    /**
    * 归还贷款
@@ -470,7 +527,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                  repaymentRepository.save(repayment);
                  returnMsg.put("flag",true);
                  returnMsg.put("code","2000.0");
-                 returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款成功");
+                 returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款成功");
                  returnMsg.put("data",repayment);
                  logger.info(repayment.toString());
                  return returnMsg;
@@ -977,7 +1034,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                isMatch=false;
                continue;
             }
-            if (map.containsKey(entry.getKey())&&map.get(entry.getKey()).toString().contains(entry.getValue())){
+            if (map.containsKey(entry.getKey())&&!map.get(entry.getKey()).toString().contains(entry.getValue())){
                isMatch=false;
             }
          }

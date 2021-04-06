@@ -50,13 +50,13 @@ public class Application {
 
         //loanService.repayment("L2104032001451",52,33.7233,33.7233*0.05);
         loanService.getCredit("ylh1234202103252");*/
-        /*LoanService loanService = new LoanService();
+        LoanService loanService = new LoanService();
         loanService.batchRepaymentLoan("2021-07-04 15:30:30");
         SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = df2.parse("2077-4-4 12:22:22");*/
-        StockService stockService = new StockService();
+        Date date = df2.parse("2077-4-4 12:22:22");
+        /*StockService stockService = new StockService();
         //stockService.getProduct("定期");
-        stockService.getProfit("123","2021-04-03");
+        stockService.getProfit("123","2021-04-03");*/
 
     }
 
