@@ -449,7 +449,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                  repaymentRepository.save(repayment);
                  returnMsg.put("flag",true);
                  returnMsg.put("code","2000.0");
-                 returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款成功");
+                 returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款成功");
                  returnMsg.put("data",repayment);
                  logger.info(repayment.toString());
                  return returnMsg;
