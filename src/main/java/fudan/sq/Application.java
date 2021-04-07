@@ -56,7 +56,9 @@ public class Application {
         Date date = df2.parse("2077-4-4 12:22:22");*/
         StockService stockService = new StockService();
         stockService.getProduct("1");
-        //stockService.getProfit("123","2021-04-03");
+        LoanService loanService = new LoanService();
+        //loanService.getBalanceByCustomerCode("ylh1234202103271");
+        stockService.getProfit("123","2021-04-03");
 
     }
 

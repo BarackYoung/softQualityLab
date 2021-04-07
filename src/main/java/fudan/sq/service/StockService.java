@@ -1,8 +1,12 @@
 package fudan.sq.service;
 
 
+import fudan.sq.entity.Account;
+import fudan.sq.entity.Repayment;
 import fudan.sq.entity.Stock;
 import fudan.sq.httpUtils.httpUtils;
+import fudan.sq.repository.AccountRepository;
+import fudan.sq.repository.RepaymentRepository;
 import fudan.sq.repository.StockRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +27,10 @@ public class StockService {
     LoanService loanService;
     @Autowired
     StockRepository stockRepository;
+    @Autowired
+    AccountRepository accountRepository;
+    @Autowired
+    RepaymentRepository repaymentRepository;
     Logger logger = LoggerFactory.getLogger(StockService.class);
 
     public Connection getConnection() {
@@ -186,26 +194,20 @@ public class StockService {
         return stocks;
     }
 
-    public Map<String,Object> buyProduct(String customerNum, int productId, java.util.Date tradeTime, int purchase) throws Exception {
+    public Map<String,Object> buyProduct(String customerNum, int productId, java.util.Date tradeTime, int purchase,String accountNumber) throws Exception {
         Map<String, Object> returnMsg = new HashMap<>();
         int credit = (int) loanService.getCredit(customerNum).get("credit");
 
 
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
-        List<Map<String,Object>> stockProducts = getProduct("股票");
-        List<Map<String,Object>> fundProducts = getProduct("基金");
-        List<Map<String,Object>> regularProducts = getProduct("定期");
+        List<Map<String,Object>> stockProducts = getProduct("1");
+        List<Map<String,Object>> fundProducts = getProduct("2");
+        List<Map<String,Object>> regularProducts = getProduct("3");
         List<Map<String,Object>> products = new ArrayList<>();
-        for(Map stock:stockProducts){
-            products.add(stock);
-        }
-        for(Map fund:fundProducts){
-            products.add(fund);
-        }
-        for(Map regular:regularProducts){
-            products.add(regular);
-        }
+        products.addAll(stockProducts);
+        products.addAll(fundProducts);
+        products.addAll(regularProducts);
         String productType = "";
         for(Map product:products){
             int id = (int) product.get("productId");
@@ -223,87 +225,82 @@ public class StockService {
                 returnMsg.put("message","当前客户信用等级不足，无法购买股票");
                 return returnMsg;
             }
-            else{
-                List<Map<String, Object>> list = (List<Map<String, Object>>) loanService.getLoanList(customerNum).get("res");
+            else{//如果有罚金先付清罚金
+                Map<String, Object> res = loanService.getLoanList(customerNum);
+                List<Map<String,Object>> list = (List<Map<String, Object>>) res.get("res");
                 List<String> iouNums = new ArrayList<>();
+                List<String> overdueIouNums = new ArrayList<>();
                 for (Map map : list) {
                     iouNums.add(map.get("iouNum").toString());
                 }
-                List<Map<String, Object>> overdue = new ArrayList<>();
+                List<Map<String, Object>> overdues = new ArrayList<>();
                 for (String iouNum : iouNums) {
-                    overdue = (List<Map<String, Object>>) loanService.getLoanPlan(iouNum).get("overdue");
+
+                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                    overdues.addAll(temps);
 
                 }
-                if (!overdue.isEmpty()) {//如果有罚金
-                    for (String iouNum : iouNums) {
-                        Map<String, Object> res2 = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum=" + iouNum);
-                        Object o4 = res2.get("data");
-                        String loanJson = httpUtils.gson.toJson(o4);
-                        Map<String, Object>[] loanMap = httpUtils.gson.fromJson(loanJson, Map[].class);
-                        Map<String, Object> loanDetails = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/" + iouNum);
-                        Object o2 = loanDetails.get("data");
-                        String loanJson2 = httpUtils.gson.toJson(o2);
-                        Map<String, Object> loanMap2 = httpUtils.gson.fromJson(loanJson2, Map.class);
-                        String accountNum = loanMap2.get("accountNum").toString();
-                        String customerCode = loanMap2.get("customerCode").toString();
+                if (!overdues.isEmpty()) {//如果有罚金，
 
 
-                        Map<String, Object> res3 = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode=" + customerCode);
-
-                        Object o6 = res3.get("data");
-                        String accountJson = httpUtils.gson.toJson(o6);
-                        Map<String, Object>[] customerMap = httpUtils.gson.fromJson(accountJson, Map[].class);
-                        Object account = customerMap[0].get("accountDtos");
-                        String accountDetail = httpUtils.gson.toJson(account);
-                        Map<String, Object>[] accountMap = httpUtils.gson.fromJson(accountDetail, Map[].class);
-                        Double balance = 0.0;
-                        for (Map accountMaps : accountMap) {
-                            if (accountMaps.get("accountNum").toString().equals(accountNum)) {
-                                balance = Double.parseDouble(accountMaps.get("balance").toString());
-                            }
+                    for(Map overdue:overdues){
+                        String customerCode = overdue.get("customerCode").toString();
+                        //根据客户号获取客户账户余额
+                        Double balance = loanService.getBalanceByCustomerCode(customerCode);
+                        String iouNum = overdue.get("iouNum").toString();
+                        int planNum = (int) Double.parseDouble(overdue.get("planNum").toString());
+                        //获得罚金
+                        Repayment repayment = repaymentRepository.findByIouNumAndPanNum(iouNum,planNum);
+                        Double penalty = 0.0;
+                        if(!repayment.isPenaltyInterestClear()){
+                            penalty = repayment.getPenaltyInterest();
                         }
-                        logger.info("balance" + balance);
-                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                        for (int i = 0; i < loanMap.length; i++) {
-                            String id_ = loanMap[i].get("id").toString();
-                            int id = (int) Double.parseDouble(id_);
-                            String date = loanMap[i].get("planDate").toString();
-                            Double remainAmount = Double.parseDouble(loanMap[i].get("remainAmount").toString());
-                            java.util.Date planDate = df.parse(date);
-                            //java.util.Date currentDate2 = df.parse(tradeTime);
-                            if (planDate.before(tradeTime)) {
-                                Double penalty = remainAmount * 0.05;
-                                if (balance < penalty) {
-                                    returnMsg.put("flag",false);
-                                    returnMsg.put("message", "购买失败，请先缴纳罚金");
-                                    return returnMsg;
-
-                                } else if (balance >= penalty & balance < remainAmount) {
-                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
-
-                                }
-
-                            }
-
-
+                        Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                        result.put("customerCode",customerCode);
+                        result.put("balance",balance);
+                        returnMsg.put("message",result);
+                        if(result.get("message").equals("贷款 "+iouNum+"  第 "+planNum+" 期部分还款失败,先缴清罚金")){
+                            returnMsg.put("flag",false);
+                            returnMsg.put("message","罚金不足，产品购买失败");
                         }
+                        return returnMsg;
                     }
 
+
                 }
-                int recordId;
-                String getRecordId = "SELECT recordID FROM stock.property order by recordID desc limit 0,1";
-                ResultSet rs = statement.executeQuery(getRecordId);
-                if (rs.next()) {
-                    recordId = rs.getInt("recordID");
-                    recordId++;
-                } else {
-                    recordId = 1;
+                Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+                Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
+                Double balance = account.getBalance();
+                String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+tradeTime+"\"";
+                ResultSet resultSet = statement.executeQuery(findProduct);
+                Double price = 0.0;
+                while(resultSet.next()){
+                    price = resultSet.getDouble("productPrice")*purchase;
                 }
-                String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
-                System.out.println(insertProperty);
-                statement.execute(insertProperty);
-                returnMsg.put("flag",true);
-                returnMsg.put("message","购买成功");
+                if(balance<price){
+                    returnMsg.put("flag",false);
+                    returnMsg.put("message","当前账户余额不足，购买失败");
+                    return returnMsg;
+                }
+                else{
+                    int recordId;
+                    String getRecordId = "SELECT recordID FROM stock.property order by recordID desc limit 0,1";
+                    ResultSet rs = statement.executeQuery(getRecordId);
+                    if (rs.next()) {
+                        recordId = rs.getInt("recordID");
+                        recordId++;
+                    } else {
+                        recordId = 1;
+                    }
+                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
+                    System.out.println(insertProperty);
+                    statement.execute(insertProperty);
+                    account.setBalance(balance-price);
+                    returnMsg.put("flag",true);
+                    returnMsg.put("message","购买成功");
+                }
+
+
 
             }
 
@@ -315,72 +312,139 @@ public class StockService {
                 return returnMsg;
             }
             else{
-                List<Map<String, Object>> list = (List<Map<String, Object>>) loanService.getLoanList(customerNum).get("res");
+                Map<String, Object> res = loanService.getLoanList(customerNum);
+                List<Map<String,Object>> list = (List<Map<String, Object>>) res.get("res");
                 List<String> iouNums = new ArrayList<>();
+                List<String> overdueIouNums = new ArrayList<>();
                 for (Map map : list) {
                     iouNums.add(map.get("iouNum").toString());
                 }
-                List<Map<String, Object>> overdue = new ArrayList<>();
+                List<Map<String, Object>> overdues = new ArrayList<>();
                 for (String iouNum : iouNums) {
-                    overdue = (List<Map<String, Object>>) loanService.getLoanPlan(iouNum).get("overdue");
+
+                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                    overdues.addAll(temps);
 
                 }
-                if (!overdue.isEmpty()) {//如果有罚金
-                    for (String iouNum : iouNums) {
-                        Map<String, Object> res2 = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum=" + iouNum);
-                        Object o4 = res2.get("data");
-                        String loanJson = httpUtils.gson.toJson(o4);
-                        Map<String, Object>[] loanMap = httpUtils.gson.fromJson(loanJson, Map[].class);
-                        Map<String, Object> loanDetails = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/" + iouNum);
-                        Object o2 = loanDetails.get("data");
-                        String loanJson2 = httpUtils.gson.toJson(o2);
-                        Map<String, Object> loanMap2 = httpUtils.gson.fromJson(loanJson2, Map.class);
-                        String accountNum = loanMap2.get("accountNum").toString();
-                        String customerCode = loanMap2.get("customerCode").toString();
+                if (!overdues.isEmpty()) {//如果有罚金，
 
 
-                        Map<String, Object> res3 = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode=" + customerCode);
-
-                        Object o6 = res3.get("data");
-                        String accountJson = httpUtils.gson.toJson(o6);
-                        Map<String, Object>[] customerMap = httpUtils.gson.fromJson(accountJson, Map[].class);
-                        Object account = customerMap[0].get("accountDtos");
-                        String accountDetail = httpUtils.gson.toJson(account);
-                        Map<String, Object>[] accountMap = httpUtils.gson.fromJson(accountDetail, Map[].class);
-                        Double balance = 0.0;
-                        for (Map accountMaps : accountMap) {
-                            if (accountMaps.get("accountNum").toString().equals(accountNum)) {
-                                balance = Double.parseDouble(accountMaps.get("balance").toString());
-                            }
+                    for(Map overdue:overdues){
+                        String customerCode = overdue.get("customerCode").toString();
+                        //根据客户号获取客户账户余额
+                        Double balance = loanService.getBalanceByCustomerCode(customerCode);
+                        String iouNum = overdue.get("iouNum").toString();
+                        int planNum = (int) Double.parseDouble(overdue.get("planNum").toString());
+                        //获得罚金
+                        Repayment repayment = repaymentRepository.findByIouNumAndPanNum(iouNum,planNum);
+                        Double penalty = 0.0;
+                        if(!repayment.isPenaltyInterestClear()){
+                            penalty = repayment.getPenaltyInterest();
                         }
-                        logger.info("balance" + balance);
-                        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                        for (int i = 0; i < loanMap.length; i++) {
-                            String id_ = loanMap[i].get("id").toString();
-                            int id = (int) Double.parseDouble(id_);
-                            String date = loanMap[i].get("planDate").toString();
-                            Double remainAmount = Double.parseDouble(loanMap[i].get("remainAmount").toString());
-                            java.util.Date planDate = df.parse(date);
-                            //java.util.Date currentDate2 = df.parse(tradeTime);
-                            if (planDate.before(tradeTime)) {
-                                Double penalty = remainAmount * 0.05;
-                                if (balance < penalty) {
-                                    returnMsg.put("flag",false);
-                                    returnMsg.put("message", "购买失败，请先缴纳罚金");
-                                    return returnMsg;
-
-                                } else if (balance >= penalty & balance < remainAmount) {
-                                    loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
-
-                                }
-
-                            }
-
-
+                        Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                        result.put("customerCode",customerCode);
+                        result.put("balance",balance);
+                        returnMsg.put("message",result);
+                        if(result.get("message").equals("贷款 "+iouNum+"  第 "+planNum+" 期部分还款失败,先缴清罚金")){
+                            returnMsg.put("flag",false);
+                            returnMsg.put("message","罚金不足，产品购买失败");
                         }
+                        return returnMsg;
                     }
 
+
                 }
+                Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+                Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
+                Double balance = account.getBalance();
+                String findProduct = "SELECT * FROM stock.fund where productId = "+productId+" and date = \""+tradeTime+"\"";
+                ResultSet resultSet = statement.executeQuery(findProduct);
+                Double price = 0.0;
+                while(resultSet.next()){
+                    price = resultSet.getDouble("productPrice")*purchase;
+                }
+                if(balance<purchase){
+                    returnMsg.put("flag",false);
+                    returnMsg.put("message","当前账户余额不足，购买失败");
+                    return returnMsg;
+                }
+                else{
+                    int recordId;
+                    String getRecordId = "SELECT recordID FROM stock.property order by recordID desc limit 0,1";
+                    ResultSet rs = statement.executeQuery(getRecordId);
+                    if (rs.next()) {
+                        recordId = rs.getInt("recordID");
+                        recordId++;
+                    } else {
+                        recordId = 1;
+                    }
+                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
+                    System.out.println(insertProperty);
+                    statement.execute(insertProperty);
+                    account.setBalance(balance-purchase);
+                    returnMsg.put("flag",true);
+                    returnMsg.put("message","购买成功");
+                }
+            }
+        }
+        else{
+            Map<String, Object> res = loanService.getLoanList(customerNum);
+            List<Map<String,Object>> list = (List<Map<String, Object>>) res.get("res");
+            List<String> iouNums = new ArrayList<>();
+            List<String> overdueIouNums = new ArrayList<>();
+            for (Map map : list) {
+                iouNums.add(map.get("iouNum").toString());
+            }
+            List<Map<String, Object>> overdues = new ArrayList<>();
+            for (String iouNum : iouNums) {
+
+                List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                overdues.addAll(temps);
+
+            }
+            if (!overdues.isEmpty()) {//如果有罚金，
+
+
+                for(Map overdue:overdues){
+                    String customerCode = overdue.get("customerCode").toString();
+                    //根据客户号获取客户账户余额
+                    Double balance = loanService.getBalanceByCustomerCode(customerCode);
+                    String iouNum = overdue.get("iouNum").toString();
+                    int planNum = (int) Double.parseDouble(overdue.get("planNum").toString());
+                    //获得罚金
+                    Repayment repayment = repaymentRepository.findByIouNumAndPanNum(iouNum,planNum);
+                    Double penalty = 0.0;
+                    if(!repayment.isPenaltyInterestClear()){
+                        penalty = repayment.getPenaltyInterest();
+                    }
+                    Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                    result.put("customerCode",customerCode);
+                    result.put("balance",balance);
+                    returnMsg.put("message",result);
+                    if(result.get("message").equals("贷款 "+iouNum+"  第 "+planNum+" 期部分还款失败,先缴清罚金")){
+                        returnMsg.put("flag",false);
+                        returnMsg.put("message","罚金不足，产品购买失败");
+                    }
+                    return returnMsg;
+                }
+
+
+            }
+            Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+            Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
+            Double balance = account.getBalance();
+            String findProduct = "SELECT * FROM stock.regular where productId = "+productId;
+            ResultSet resultSet = statement.executeQuery(findProduct);
+            Double price = 0.0;
+            while(resultSet.next()){
+                price = resultSet.getDouble("productPrice")*purchase;
+            }
+            if(balance<price){
+                returnMsg.put("flag",false);
+                returnMsg.put("message","当前账户余额不足，购买失败");
+                return returnMsg;
+            }
+            else{
                 int recordId;
                 String getRecordId = "SELECT recordID FROM stock.property order by recordID desc limit 0,1";
                 ResultSet rs = statement.executeQuery(getRecordId);
@@ -393,91 +457,10 @@ public class StockService {
                 String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
                 System.out.println(insertProperty);
                 statement.execute(insertProperty);
+                account.setBalance(balance-price);
                 returnMsg.put("flag",true);
                 returnMsg.put("message","购买成功");
             }
-        }
-        else{
-            List<Map<String, Object>> list = (List<Map<String, Object>>) loanService.getLoanList(customerNum).get("res");
-            List<String> iouNums = new ArrayList<>();
-            for (Map map : list) {
-                iouNums.add(map.get("iouNum").toString());
-            }
-            List<Map<String, Object>> overdue = new ArrayList<>();
-            for (String iouNum : iouNums) {
-                overdue = (List<Map<String, Object>>) loanService.getLoanPlan(iouNum).get("overdue");
-
-            }
-            if (!overdue.isEmpty()) {//如果有罚金
-                for (String iouNum : iouNums) {
-                    Map<String, Object> res2 = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/plan?iouNum=" + iouNum);
-                    Object o4 = res2.get("data");
-                    String loanJson = httpUtils.gson.toJson(o4);
-                    Map<String, Object>[] loanMap = httpUtils.gson.fromJson(loanJson, Map[].class);
-                    Map<String, Object> loanDetails = httpUtils.httpClientGet("http://10.176.122.172:8012/loan/" + iouNum);
-                    Object o2 = loanDetails.get("data");
-                    String loanJson2 = httpUtils.gson.toJson(o2);
-                    Map<String, Object> loanMap2 = httpUtils.gson.fromJson(loanJson2, Map.class);
-                    String accountNum = loanMap2.get("accountNum").toString();
-                    String customerCode = loanMap2.get("customerCode").toString();
-
-
-                    Map<String, Object> res3 = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode=" + customerCode);
-
-                    Object o6 = res3.get("data");
-                    String accountJson = httpUtils.gson.toJson(o6);
-                    Map<String, Object>[] customerMap = httpUtils.gson.fromJson(accountJson, Map[].class);
-                    Object account = customerMap[0].get("accountDtos");
-                    String accountDetail = httpUtils.gson.toJson(account);
-                    Map<String, Object>[] accountMap = httpUtils.gson.fromJson(accountDetail, Map[].class);
-                    Double balance = 0.0;
-                    for (Map accountMaps : accountMap) {
-                        if (accountMaps.get("accountNum").toString().equals(accountNum)) {
-                            balance = Double.parseDouble(accountMaps.get("balance").toString());
-                        }
-                    }
-                    logger.info("balance" + balance);
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                    for (int i = 0; i < loanMap.length; i++) {
-                        String id_ = loanMap[i].get("id").toString();
-                        int id = (int) Double.parseDouble(id_);
-                        String date = loanMap[i].get("planDate").toString();
-                        Double remainAmount = Double.parseDouble(loanMap[i].get("remainAmount").toString());
-                        java.util.Date planDate = df.parse(date);
-                        //java.util.Date currentDate2 = df.parse(tradeTime);
-                        if (planDate.before(tradeTime)) {
-                            Double penalty = remainAmount * 0.05;
-                            if (balance < penalty) {
-                                returnMsg.put("flag",false);
-                                returnMsg.put("message", "购买失败，请先缴纳罚金");
-                                return returnMsg;
-
-                            } else if (balance >= penalty & balance < remainAmount) {
-                                loanService.repaymentOverdue(iouNum, i, penalty, tradeTime.toString());
-
-                            }
-
-                        }
-
-
-                    }
-                }
-
-            }
-            int recordId;
-            String getRecordId = "SELECT recordID FROM stock.property order by recordID desc limit 0,1";
-            ResultSet rs = statement.executeQuery(getRecordId);
-            if (rs.next()) {
-                recordId = rs.getInt("recordID");
-                recordId++;
-            } else {
-                recordId = 1;
-            }
-            String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
-            System.out.println(insertProperty);
-            statement.execute(insertProperty);
-            returnMsg.put("flag",true);
-            returnMsg.put("message","购买成功");
         }
 
 
@@ -485,6 +468,7 @@ public class StockService {
 
 
     }
+
     public List<Map<String,Object>> getProperty(String customerNum) throws SQLException {
         Connection connection = getConnection();
         Statement statement = connection.createStatement();
@@ -505,7 +489,7 @@ public class StockService {
         }
         return properties;
     }
-    public List<Map<String,Object>> getProfit(String customerID,String currentDate) throws SQLException, ParseException {
+    public Map<String,Object> getProfit(String customerID,String currentDate) throws SQLException, ParseException {
         Connection connection = getConnection();
         List<Map<String,Object>> customerProperties = getProperty(customerID);
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -519,9 +503,9 @@ public class StockService {
         int amount;
         String purchaseDay;
         Double profit;
-        List<Map<String,Object>> stockProducts = getProduct("股票");
-        List<Map<String,Object>> fundProducts = getProduct("基金");
-        List<Map<String,Object>> regularProducts = getProduct("定期");
+        List<Map<String,Object>> stockProducts = getProduct("1");
+        List<Map<String,Object>> fundProducts = getProduct("2");
+        List<Map<String,Object>> regularProducts = getProduct("3");
         List<Map<String,Object>> products = new ArrayList<>();
         Map<String,Object> returnMap = new HashMap<>();
         for(Map stock:stockProducts){
@@ -640,6 +624,7 @@ public class StockService {
                 int price = 0;
                 int currentPrice = 0;
                 int priceChange =0;
+                int period = 0;
                 Double rate = 0.0;
                 String productName = "";
                 List<Integer> prices = new ArrayList<>();
@@ -647,12 +632,13 @@ public class StockService {
                 ResultSet rs = statement.executeQuery(sql);
                 while(rs.next()){
                     rate = rs.getDouble("rate");
+                    period = rs.getInt("period");
 
                     price = rs.getInt("productPrice");
                     System.out.println("购买日价格："+price);
                     productName = rs.getString("productName");
                 }
-
+                String dueDate = "";
                 profit = price*rate*amount/100;
                 product.put("profit",profit);
                 product.put("productId",productId);
@@ -662,6 +648,7 @@ public class StockService {
                 product.put("purchaseDay",purchaseDay);
                 product.put("recordId",recordId);
                 product.put("customerId",customerID);
+                product.put("period",period);
                 System.out.println(product);
                 regularMap.add(product);
             }
@@ -672,6 +659,6 @@ public class StockService {
         returnMap.put("基金",fundMap);
         returnMap.put("定期",regularMap);
         System.out.println(returnMap);
-        return regularMap;
+        return returnMap;
     }
 }
