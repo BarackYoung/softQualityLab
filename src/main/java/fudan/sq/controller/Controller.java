@@ -18,7 +18,8 @@ import java.io.*;
 import java.net.URLEncoder;
 
 
-import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,10 +136,12 @@ public class Controller {
     @PostMapping("/buyProduct")
     public ResponseEntity<?> buyProduct(@RequestParam("customerNum") String customerNum,
                                         @RequestParam("productId") int productId,
-                                        @RequestParam("tradeTime") Date tradeTime,
+                                        @RequestParam("tradeTime") String tradeTime,
                                         @RequestParam("purchase") int purchase,
                                         @RequestParam("accountNum") String accountNum) throws Exception {
-        return ResponseEntity.ok(stockService.buyProduct(customerNum,productId, tradeTime,purchase,accountNum));
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = df.parse(tradeTime);
+        return ResponseEntity.ok(stockService.buyProduct(customerNum,productId, date,purchase,accountNum));
     }
 
     /**

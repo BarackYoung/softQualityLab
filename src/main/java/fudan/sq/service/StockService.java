@@ -511,15 +511,9 @@ public class StockService {
         List<Map<String,Object>> regularProducts = getProduct("3");
         List<Map<String,Object>> products = new ArrayList<>();
         Map<String,Object> returnMap = new HashMap<>();
-        for(Map stock:stockProducts){
-            products.add(stock);
-        }
-        for(Map fund:fundProducts){
-            products.add(fund);
-        }
-        for(Map regular:regularProducts){
-            products.add(regular);
-        }
+        products.addAll(stockProducts);
+        products.addAll(fundProducts);
+        products.addAll(regularProducts);
         String productType = "";
         for(Map customerProperty:customerProperties){
 
