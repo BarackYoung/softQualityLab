@@ -707,6 +707,14 @@ public class LoanService {
       for (Map<String,Object> map:maps){
          boolean isMatch = true;
          for (Map.Entry<String,String> entry:condition.entrySet()){
+            if(entry.getValue()== ""){
+               continue;
+            }
+
+            if(entry.getValue()== null){
+               continue;
+            }
+
             if (entry.getKey().hashCode()=="startTime".hashCode()){
                Date date = simpleDateFormat.parse(entry.getValue());
                Date operatorTime = simpleDateFormat.parse(map.get("operatorTime").toString());
