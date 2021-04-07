@@ -112,6 +112,7 @@ public class StockService {
                 }
                 stock.put("productName",stockNAME);
                 stock.put("productId",stockName);
+                stock.put("productPrice",prices.get(prices.size()-1));
                 stock.put("price",prices);
                 stock.put("date",dates);
                 stock.put("productType", "股票");
@@ -148,6 +149,7 @@ public class StockService {
                 }
                 stock.put("productName",stockNAME);
                 stock.put("productId",stockName);
+                stock.put("productRate",prices.get(prices.size()-1));
                 stock.put("rate",prices);
                 stock.put("date",dates);
                 stock.put("productType", "基金");
@@ -489,6 +491,7 @@ public class StockService {
         }
         return properties;
     }
+
     public Map<String,Object> getProfit(String customerID,String currentDate) throws SQLException, ParseException {
         Connection connection = getConnection();
         List<Map<String,Object>> customerProperties = getProperty(customerID);
@@ -533,8 +536,11 @@ public class StockService {
                 Double price = 0.0;
                 Double currentPrice = 0.0;
                 int priceChange =0;
+                String dateChange="";
                 String productName = "";
                 List<Integer> prices = new ArrayList<>();
+                List<String> dateSet = new ArrayList<>();
+
                 String sql = "SELECT * FROM stock.stock where productId = \""+productId+"\" and date = \""+ purchaseDay +"\"";
                 ResultSet rs = statement.executeQuery(sql);
                 while(rs.next()){
@@ -554,6 +560,9 @@ public class StockService {
                 while(rs3.next()){
                     priceChange = rs3.getInt("productPrice");
                     prices.add(priceChange);
+                    dateChange= String.format(rs3.getDate("date").toString(), "yyyy-MM-dd");
+
+                    dateSet.add(dateChange);
 
                 }
                 System.out.println(prices);
@@ -566,6 +575,7 @@ public class StockService {
                 product.put("purchaseDay",purchaseDay);
                 product.put("recordId",recordId);
                 product.put("customerId",customerID);
+                product.put("date",dateSet);
                 System.out.println(product);
                 stockMap.add(product);
 
@@ -576,8 +586,11 @@ public class StockService {
                 Double price = 0.0;
                 Double currentPrice = 0.0;
                 Double priceChange = 0.0;
+                String dateChange="";
                 String productName = "";
                 List<Double> prices = new ArrayList<>();
+                List<String> dateSet = new ArrayList<>();
+
                 String sql = "SELECT * FROM stock.fund where productId = \""+ productId +"\" and date = \""+ purchaseDay +"\"";
                 ResultSet rs = statement.executeQuery(sql);
                 while(rs.next()){
@@ -598,6 +611,10 @@ public class StockService {
                     priceChange = rs3.getDouble("rate");
 
                     prices.add(priceChange);
+                    dateChange= String.format(rs3.getDate("date").toString(), "yyyy-MM-dd");
+
+                    dateSet.add(dateChange);
+
 
                 }
                 System.out.println(prices);
@@ -610,6 +627,7 @@ public class StockService {
                 product.put("purchaseDay",purchaseDay);
                 product.put("recordId",recordId);
                 product.put("customerId",customerID);
+                product.put("date",dateSet);
                 System.out.println(product);
                 fundMap.add(product);
             }
@@ -637,6 +655,7 @@ public class StockService {
                 product.put("profit",profit);
                 product.put("productId",productId);
                 product.put("productName",productName);
+                product.put("productPrice",price);
                 product.put("priceChange",rate);
                 product.put("amount",amount);
                 product.put("purchaseDay",purchaseDay);
