@@ -559,6 +559,177 @@ public class LoanService {
    }
 
    /**
+    * 日终结算的还款
+    * */
+   public Map<String,Object> repayment2(String customerNumber,String iouNum,int id) throws Exception {
+      Map<String,Object> res = getLoanPlan(iouNum);
+      logger.info("取得的订单:"+res);
+      Object o1 = res.get("overdue");
+      String json = httpUtils.gson.toJson(o1);
+      Map<String ,Object>[] overdueBills = httpUtils.gson.fromJson(json,Map[].class);
+      Object o2 = res.get("remain");
+      String json2 = httpUtils.gson.toJson(o2);
+      Map<String ,Object>[] remainBills = httpUtils.gson.fromJson(json2,Map[].class);
+
+      Map<String,Object> returnMsg = new HashMap<>();
+      Map<String,Object> repaymentBill = new HashMap<>();
+
+      for (Map<String,Object> map:overdueBills){
+         double planNum = Double.parseDouble(map.get("planNum").toString());
+         logger.info("planId:"+planNum+";id:"+id);
+         if (planNum==id){
+            //还款
+            repaymentBill = map;
+            break;
+         }
+      }
+      if (repaymentBill.size()==0){
+         for (Map<String,Object> map:remainBills){
+            double planNum = Double.parseDouble(map.get("planNum").toString());
+            logger.info("planId:"+planNum+";id:"+id);
+            if (planNum==id){
+               //还款
+               repaymentBill = map;
+               break;
+            }
+         }
+      }
+      logger.info("正在还得账单："+repaymentBill);
+      if (repaymentBill.size()==0){
+         returnMsg.put("flag",false);
+         returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期还款失败,没有找到订单");
+         return returnMsg;
+      }
+      SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+      SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
+      Date date = df2.parse("2021-8-4 12:22:22");
+
+
+
+
+
+      Map<String,Object> loanPlanDto = new HashMap<>();
+
+      double compoundInterest = 0;
+      Object creatTime = repaymentBill.get("creatTime");
+      double creator = 0;
+//      String currentDate = df2.format(new Date(System.currentTimeMillis()));
+      String currentDate = repaymentBill.get("planDate").toString()+" 11:00:18";
+      int id_ = (int) Double.parseDouble(repaymentBill.get("id").toString());
+      String iouNum_ = iouNum;
+      int payMethod = 2;
+      double penaltyInterest = Double.parseDouble(repaymentBill.get("penaltyInterest").toString());
+      double planAmount = Double.parseDouble(repaymentBill.get("planAmount").toString());
+      Object planDate = repaymentBill.get("planDate");
+      double planInterest = Double.parseDouble(repaymentBill.get("planInterest").toString());
+      int planNum = (int) Double.parseDouble(repaymentBill.get("planNum").toString());
+      double planPrincipal = Double.parseDouble(repaymentBill.get("planPrincipal").toString());
+      double remainAmount = Double.parseDouble(repaymentBill.get("remainAmount").toString());
+      double remainInterest = Double.parseDouble(repaymentBill.get("remainInterest").toString());
+      double remainPrincipal = Double.parseDouble(repaymentBill.get("remainPrincipal").toString());
+      int repaymentStatus = 1;
+      String transactionCode = "";
+      String updateTime = df2.format(new Date(System.currentTimeMillis()));
+      double updater = 0;
+
+      String dataStr = repaymentBill.get("planDate").toString();
+
+      Date planData = df.parse(dataStr);
+
+
+         /**
+          * 过期订单
+          * */
+         //double should_penaltyInterest = remainAmount * 0.5;
+      List<Account> accounts = accountRepository.findAllByCustomerNum(customerNumber);
+      double amount = 0;
+      Account repayAccount = null;
+      for (Account account:accounts){
+         if (account.getBalance()>=amount){
+            repayAccount = account;
+            amount = account.getBalance();
+         }
+      }
+
+         if (amount < remainAmount) {
+            /**
+             * 部分还款
+             * */
+            //先还罚息
+
+            Repayment repayment = repaymentRepository.findByIouNumAndPanNum(repaymentBill.get("iouNum").toString(),(int)Double.parseDouble(repaymentBill.get("planNum").toString()));
+            logger.info("准备还款金额："+amount);
+            logger.info("罚息："+repayment.getPenaltyInterest());
+            if (amount<remainInterest){
+               if (amount<repayment.getPenaltyInterest()){
+                  returnMsg.put("flag",false);
+                  returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期部分还款失败,不够缴清罚金");
+//                     returnMsg.put("data",repayment);
+                  return returnMsg;
+               }
+
+//                  if (repayment == null){
+//                     repayment = new Repayment();
+//                     repayment.setIouNum(repaymentBill.get("iouNum").toString());
+//                     repayment.setPanNum((int) Double.parseDouble(repaymentBill.get("planNum").toString()));
+//                     repayment.setPenaltyInterest(penaltyInterest);
+//                     repayment.setRemainAmount(remainAmount-amount);
+//                     repayment.setRemainInterest(remainInterest-amount);
+//                     repayment.setRemainPrincipal(remainPrincipal);
+//                     repaymentRepository.save(repayment);
+//                  }else {
+
+               repayment.setRemainAmount(remainAmount-penaltyInterest);
+               repayment.setRemainInterest(repayment.getRemainInterest()-penaltyInterest);
+               repayment.setRemainPrincipal(remainPrincipal);
+               repayment.setPenaltyInterestClear(true);
+               repaymentRepository.save(repayment);
+
+               repayAccount.setBalance(repayAccount.getBalance()-penaltyInterest);
+               accountRepository.save(repayAccount);
+
+//                  }
+            }
+            returnMsg.put("flag",true);
+            returnMsg.put("message","贷款 "+iouNum+"  第 "+id+" 期罚息还款成功");
+            returnMsg.put("data",repayment);
+            return returnMsg;
+         } else {
+            /**
+             * 全额还款
+             * */
+            loanPlanDto.put("compoundInterest", compoundInterest);
+            loanPlanDto.put("creatTime", creatTime);
+            loanPlanDto.put("creator", creator);
+            loanPlanDto.put("currentDate", currentDate);
+            loanPlanDto.put("id", id_);
+            loanPlanDto.put("iouNum", iouNum);
+            loanPlanDto.put("payMethod", payMethod);
+            loanPlanDto.put("penaltyInterest", penaltyInterest);
+            loanPlanDto.put("planAmount", planAmount);
+            loanPlanDto.put("planDate", planDate);
+            loanPlanDto.put("planInterest", planInterest);
+            loanPlanDto.put("planNum", planNum);
+            loanPlanDto.put("planPrincipal", planPrincipal);
+            loanPlanDto.put("remainAmount", remainAmount);
+            loanPlanDto.put("remainInterest", remainInterest);
+            loanPlanDto.put("remainPrincipal", remainPrincipal);
+            loanPlanDto.put("repaymentStatus", repaymentStatus);
+            loanPlanDto.put("transactionCode", transactionCode);
+            loanPlanDto.put("updateTime", updateTime);
+            loanPlanDto.put("updater", updater);
+            Map<String, Object> result = httpUtils.doPut("http://10.176.122.172:8012/loan/repayment", httpUtils.gson.toJson(loanPlanDto));
+            logger.info("还款结果：" + result);
+            assert repayAccount != null;
+            repayAccount.setBalance(repayAccount.getBalance()-remainAmount);
+            accountRepository.save(repayAccount);
+            return result;
+         }
+   }
+
+   /**
     * 返回可以日终结算的所有订单
     * */
    public List<Map<String,Object>> searchBatchRepayment(String dataStr) throws Exception {
@@ -620,7 +791,6 @@ public class LoanService {
                account.setCustomerNum(customerCode);
                account.setAccountNum(dtoMap.get("accountNum").toString());
                account.setBalance(Double.parseDouble(dtoMap.get("balance").toString()));
-
                map.put("accountNum", dtoMap.get("accountNum"));
                map.put("customerNum", customerCode);
                map.put("balance", Double.parseDouble(dtoMap.get("balance").toString()));
@@ -646,7 +816,7 @@ public class LoanService {
          Double balance = getBalanceByCustomerCode(customerCode);
          String iouNum = loanMap.get("iouNum").toString();
          int planNum = (int) Double.parseDouble(loanMap.get("planNum").toString());
-         Map<String,Object> res = repayment(iouNum,planNum,balance);
+         Map<String,Object> res = repayment2(customerCode,iouNum,planNum);
          res.put("customerCode",customerCode);
          res.put("balance",balance);
          overDueRePaymentResult.add(res);
