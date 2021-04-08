@@ -60,7 +60,9 @@ public class Application {
         //loanService.getBalanceByCustomerCode("ylh1234202103271");
         //stockService.getProfit("123","2021-04-03");
         //loanService.getCredit("ylh1234202103271");
-        loanService.getLoanList("ylh1234202103271");
+        /*loanService.getLoanList("ylh1234202103271");
+        stockService.getConnection();*/
+        stockService.getConnection();
 
     }
 

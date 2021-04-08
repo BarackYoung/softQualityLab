@@ -11,7 +11,10 @@ import fudan.sq.repository.StockRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+
 
 
 import javax.annotation.Resource;
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+@PropertySource("application.properties")
 @Service
 public class StockService {
     @Autowired
@@ -32,9 +36,16 @@ public class StockService {
     AccountRepository accountRepository;
     @Autowired
     RepaymentRepository repaymentRepository;
+    @Value("${spring.datasource.username}")
+    private String user;
+    @Value("${spring.datasource.password}")
+    private String password;
+
     Logger logger = LoggerFactory.getLogger(StockService.class);
 
     public Connection getConnection() {
+        System.out.println(user);
+        System.out.println(password);
         Connection conn = null;
         Connection con = null;
         PreparedStatement ps = null;
