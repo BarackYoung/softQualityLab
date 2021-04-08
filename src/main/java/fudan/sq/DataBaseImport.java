@@ -2,6 +2,7 @@ package fudan.sq;
 
 import java.io.*;
 import java.sql.*;
+import java.util.Random;
 import java.util.Scanner;
 
 public class DataBaseImport {
@@ -98,10 +99,10 @@ public class DataBaseImport {
                     + " PRIMARY KEY (productId,date) " /*主键为产品ID + 日期，唯一定义一个产品的变化*/
                     + ")";
             stmt.executeUpdate(sql);
-            System.out.println("... Stock数据库中stock表创建成功 ...");
+            System.out.println("... Stock数据库中fund表创建成功 ...");
         }catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("stockTable创建失败");
+            System.out.println("fundkTable创建失败");
         }
 
         //创建Regular表
@@ -230,39 +231,39 @@ public class DataBaseImport {
 
 
         //产品4(基金)
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.11, '2021-03-30')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.11, '2021-03-30')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.13, '2021-3-31')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.13, '2021-3-31')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.09, '2021-04-01')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.09, '2021-04-01')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.05, '2021-04-02')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.05, '2021-04-02')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.07, '2021-04-03')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.07, '2021-04-03')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.01, '2021-04-04')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.01, '2021-04-04')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.03, '2021-04-05')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.03, '2021-04-05')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.02, '2021-04-06')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.02, '2021-04-06')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.03, '2021-04-07')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.03, '2021-04-07')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.07, '2021-04-08')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.07, '2021-04-08')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.09, '2021-04-09')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.09, '2021-04-09')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.13, '2021-04-10')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.13, '2021-04-10')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.08, '2021-04-11')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.08, '2021-04-11')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', -0.02, '2021-04-12')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', -0.02, '2021-04-12')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.01, '2021-04-13')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.01, '2021-04-13')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.03, '2021-04-14')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.03, '2021-04-14')";
         stmt.executeUpdate(sql);
-        sql = "INSERT INTO fund VALUES (00000004, '1314基金', 0.04, '2021-04-15')";
+        sql = "INSERT INTO fund VALUES (00000004, '5555基金', 0.04, '2021-04-15')";
         stmt.executeUpdate(sql);
 
 
@@ -316,10 +317,150 @@ public class DataBaseImport {
         stmt.executeUpdate(sql);
 
 
+        //产品9(股票)
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 10000, '2021-03-30')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 20000, '2021-03-31')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 30000, '2021-04-01')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 40000, '2021-04-02')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 50000, '2021-04-03')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 60000, '2021-04-04')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 70000, '2021-04-05')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 80000, '2021-04-06')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 90000, '2021-04-07')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 100000, '2021-04-08')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 110000, '2021-04-09')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 120000, '2021-04-10')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 130000, '2021-04-11')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 140000, '2021-04-12')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 150000, '2021-04-13')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 160000, '2021-04-14')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000009, '全都拿A', 170000, '2021-04-15')";
+        stmt.executeUpdate(sql);
+
+        //产品10(股票)
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 100, '2021-03-30')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 111, '2021-03-31')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 107, '2021-04-01')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 123, '2021-04-02')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 151, '2021-04-03')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 91, '2021-04-04')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 93, '2021-04-05')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 87, '2021-04-06')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 89, '2021-04-07')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 97, '2021-04-08')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 103, '2021-04-09')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 107, '2021-04-10')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 109, '2021-04-11')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 102, '2021-04-12')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 98, '2021-04-13')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 97, '2021-04-14')";
+        stmt.executeUpdate(sql);
+        sql = "INSERT INTO stock VALUES (00000010, '股票111号', 99, '2021-04-15')";
+        stmt.executeUpdate(sql);
+
+        //产品12（股票）
+        createProduct("12","快乐柠檬",conn,1000,"stock");
+
+        //产品13（股票）
+        createProduct("13","五十岚",conn,1200,"stock");
+
+        //产品14（股票）
+        createProduct("14","一点点",conn,1500,"stock");
+
+        //产品15（股票）
+        createProduct("15","CoCo",conn,500,"stock");
+
+        //产品16（基金）
+        createProduct("16","DQ",conn,1200,"fund");
+
+        //产品17（基金）
+        createProduct("17","八喜",conn,1800,"fund");
+
+        //产品18（基金）
+        createProduct("18","可爱多",conn,900,"fund");
+
+        //产品18（基金）
+        createProduct("19","梦龙",conn,400,"fund");
+
+
+
 
         //关闭连接
         stmt.close();
         conn.close();
+
+    }
+
+    public static void createProduct(String id,String name,Connection conn,int myprice,String tableName) throws SQLException {
+
+        int price=myprice;
+
+        Statement statement = conn.createStatement();
+        Random r = new Random(1);
+
+
+        int ran1 = r.nextInt(20);
+
+        price=price*(100+ran1-10)/100;
+        String str="INSERT INTO "+tableName+" VALUES (000000"+id+", \'"+name+"\', "+price+", '2021-03-30')";
+
+        System.out.println(str);
+        statement.executeUpdate(str);
+
+        ran1 = r.nextInt(20);
+
+        price=price*(100+ran1-10)/100;
+        str="INSERT INTO "+ tableName + " VALUES (000000"+id+",\' "+name+"\', "+price+", '2021-03-31')";
+        statement.executeUpdate(str);
+
+        for(int i=1;i<10;i++){
+
+            ran1 = r.nextInt(20);
+
+            price=price*(100+ran1-10)/100;
+            str="INSERT INTO "+ tableName +" VALUES (000000"+id+", \'"+name+"\', "+price+", '2021-04-0"+i+"')";
+            statement.executeUpdate(str);
+        }
+
+        for(int i=10;i<=16;i++){
+
+            ran1 = r.nextInt(20);
+
+            price=price*(100+ran1-10)/100;
+            str="INSERT INTO "+ tableName +" VALUES (000000"+id+", \'"+name+"\', "+price+", '2021-04-0"+i+"')";
+            statement.executeUpdate(str);
+        }
 
     }
 }

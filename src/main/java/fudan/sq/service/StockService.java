@@ -294,7 +294,12 @@ public class StockService {
                 }
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
                 //Double balance = account.getBalance();
-                String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+tradeTime+"\"";
+
+                //进行日期格式的转换
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String format = sdf.format(tradeTime);
+
+                String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+format+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
                 Double price = 0.0;
                 while(resultSet.next()){
@@ -315,8 +320,8 @@ public class StockService {
                     } else {
                         recordId = 1;
                     }
-                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                    String format = sdf.format(tradeTime);
+                    sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    format = sdf.format(tradeTime);
                     String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + ",\"" + customerNum + "\"," + productId + "," + purchase + ",\'" + format + "\')";
                     System.out.println(insertProperty);
                     statement.execute(insertProperty);
@@ -392,7 +397,10 @@ public class StockService {
 
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
                 //Double balance = account.getBalance();
-                String findProduct = "SELECT * FROM stock.fund where productId = "+productId+" and date = \""+tradeTime+"\"";
+
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String format = sdf.format(tradeTime);
+                String findProduct = "SELECT * FROM stock.fund where productId = "+productId+" and date = \""+format+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
                 Double price = 0.0;
                 while(resultSet.next()){
@@ -413,8 +421,8 @@ public class StockService {
                     } else {
                         recordId = 1;
                     }
-                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                    String format = sdf.format(tradeTime);
+                    sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    format = sdf.format(tradeTime);
                     java.util.Date date = sdf.parse(format);
                     String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + ",\"" + customerNum + "\"," + productId + "," + purchase + ",\'" + format + "\')";
                     System.out.println(insertProperty);

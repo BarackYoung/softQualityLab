@@ -760,6 +760,8 @@ public class LoanService {
          List<Map<String,Object>> temp = getOverdueLoanPlanByDate(map.get("iouNum"),dataStr);
          for (Map<String,Object> map1:temp){
             map1.put("customerCode",map.get("customerCode"));
+            map1.put("balance",getBalanceByCustomerCode(map.get("customerCode")));     //获取balance并且增加到返回值中
+
          }
          allOverdue.addAll(temp);
       }
