@@ -57,7 +57,7 @@ public class StockService {
 
         try {
             conn =
-                    DriverManager.getConnection("jdbc:mysql://localhost/stock?serverTimezone=UTC", "root", "123456");
+                    DriverManager.getConnection("jdbc:mysql://localhost/stock?serverTimezone=UTC", "root", "922626@hyq");
             //此处test为mysql提前建立的数据库，root为用户名，最后为密码
 
             System.out.println("连接成功");

@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -25,6 +28,8 @@ public class LoanService {
    RepaymentRepository repaymentRepository;
    @Autowired
    AccountRepository accountRepository;
+   @Autowired
+   StockService stockService;
 
    public void LoanService(){
 
@@ -973,6 +978,45 @@ public class LoanService {
       }
       System.out.println(returnMsg.get("credit"));
       return returnMsg;
+   }
+   public List<Map<String,Object>> getAccountNumByCustomerId(String customerCode) throws Exception {
+      List<Map<String,Object>> returnMsg = new ArrayList<>();
+      List<String> accountNums = new ArrayList<>();
+      Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode="+customerCode);
+      Object o = res.get("data");
+      String json = httpUtils.gson.toJson(o);
+      Map<String ,Object>[] maps = httpUtils.gson.fromJson(json,Map[].class);
+
+      for (Map<String,Object> map:maps) {
+         Object dtos = map.get("accountDtos");
+         String dtosJson = httpUtils.gson.toJson(dtos);
+         Map<String, Object>[] dtoMaps = httpUtils.gson.fromJson(dtosJson, Map[].class);
+         if (dtoMaps == null) {
+            return new ArrayList<>();
+         }
+         for (Map dtoMap : dtoMaps) {
+            Map<String,Object> accountMap = new HashMap<>();
+            String accountNum = dtoMap.get("accountNum").toString();
+            accountMap.put("accountNum",accountNum);
+            accountMap.put("createAmount",dtoMap.get("createTime").toString());
+            Double balance1 = getBalanceByCustomerCode(customerCode);
+            String findAccount = "SELECT * FROM stock.account where customer_num = \""+customerCode+"\" and account_num = \""+accountNum+"\"";
+            System.out.println(findAccount);
+            Connection connection = stockService.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet2 = statement.executeQuery(findAccount);
+            Double balance = 0.0;
+            while(resultSet2.next()){
+               balance = resultSet2.getDouble("balance");
+            }
+            accountMap.put("totalAmount",balance);
+            returnMsg.add(accountMap);
+
+
+         }
+      }
+      return  returnMsg;
+
    }
 
 }

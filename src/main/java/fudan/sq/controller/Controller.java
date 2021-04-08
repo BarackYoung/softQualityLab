@@ -188,4 +188,12 @@ public class Controller {
         return ResponseEntity.ok(loanService.searchBatchRepayment(request.get("data")));
     }
 
+    /**
+     * 获取客户账户
+     * */
+    @GetMapping("/getAccountNums/{customerCode}")
+    public ResponseEntity<?> getAccountNums(@PathVariable String customerCode) throws Exception {
+        return ResponseEntity.ok(loanService.getAccountNumByCustomerId(customerCode));
+    }
+
 }
