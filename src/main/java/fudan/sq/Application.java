@@ -58,7 +58,9 @@ public class Application {
         stockService.getProduct("1");
         LoanService loanService = new LoanService();
         //loanService.getBalanceByCustomerCode("ylh1234202103271");
-        stockService.getProfit("123","2021-04-03");
+        //stockService.getProfit("123","2021-04-03");
+        //loanService.getCredit("ylh1234202103271");
+        loanService.getLoanList("ylh1234202103271");
 
     }
 

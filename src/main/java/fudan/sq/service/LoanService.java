@@ -183,9 +183,10 @@ public class LoanService {
          }
 
          String dataStr = map.get("planDate").toString();
-         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
          Date currentDate = df.parse(currentDataStr);
-         Date planData = df.parse(dataStr);
+         Date planData = dateFormat.parse(dataStr);
          double repaymentStatus = Double.parseDouble(map.get("repaymentStatus").toString());
          if (repaymentStatus>1.0){
             map.put("remainAmount",0);
@@ -591,7 +592,6 @@ public class LoanService {
 
 
    public double getBalanceByCustomerCode(String customerCode) throws Exception {
-
       Double balance = 0.0;
       Map<String,Object> returnMsg = new HashMap<>();
       Map<String,Object> res = httpUtils.httpClientGet("http://10.176.122.172:8012/account?customerCode="+customerCode);

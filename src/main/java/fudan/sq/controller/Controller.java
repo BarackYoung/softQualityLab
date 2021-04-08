@@ -134,13 +134,24 @@ public class Controller {
      * 购买产品
      * */
     @PostMapping("/buyProduct")
-    public ResponseEntity<?> buyProduct(@RequestParam("customerNum") String customerNum,
-                                        @RequestParam("productId") int productId,
-                                        @RequestParam("tradeTime") String tradeTime,
-                                        @RequestParam("purchase") int purchase,
-                                        @RequestParam("accountNum") String accountNum) throws Exception {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = df.parse(tradeTime);
+    public ResponseEntity<?> buyProduct(@RequestBody Map<String,String> request) throws Exception {
+        String customerNum = request.get("customerNum");
+        int productId = Integer.parseInt(request.get("productId"));
+
+       /* System.out.println("转换前"+request.get("tradeTime"));
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date1 = df.parse(request.get("tradeTime"));
+        Date date2 = df.parse(request.get("tradeTime"));
+        System.out.println(date2);*/
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+        Date date = df.parse(request.get("tradeTime"));
+        System.out.println(date);
+
+        int purchase = Integer.parseInt(request.get("purchase"));
+        String accountNum = request.get("accountNumber");
+
+
         return ResponseEntity.ok(stockService.buyProduct(customerNum,productId, date,purchase,accountNum));
     }
 
@@ -158,6 +169,8 @@ public class Controller {
     public ResponseEntity<?> getBalance(@PathVariable String customerCode) throws Exception {
         return ResponseEntity.ok(loanService.getBalanceByCustomerCode(customerCode));
     }
+
+
 
     /**
      * 查看用户盈利

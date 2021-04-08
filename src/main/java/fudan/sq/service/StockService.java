@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 @Service
 public class StockService {
+    @Autowired
     LoanService loanService;
     @Autowired
     StockRepository stockRepository;
@@ -199,6 +200,7 @@ public class StockService {
     public Map<String,Object> buyProduct(String customerNum, int productId, java.util.Date tradeTime, int purchase,String accountNumber) throws Exception {
         Map<String, Object> returnMsg = new HashMap<>();
         int credit = (int) loanService.getCredit(customerNum).get("credit");
+        System.out.println("ACCOUNTNUMBER"+accountNumber);
 
 
         Connection conn = getConnection();
@@ -237,8 +239,9 @@ public class StockService {
                 }
                 List<Map<String, Object>> overdues = new ArrayList<>();
                 for (String iouNum : iouNums) {
-
-                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    String format = sdf.format(tradeTime);
+                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,format);//找到该用户所有过期的贷款
                     overdues.addAll(temps);
 
                 }
@@ -271,8 +274,15 @@ public class StockService {
 
                 }
                 Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+                String findAccount = "SELECT * FROM stock.account where customer_num = \""+customerNum+"\" and account_num = \""+accountNumber+"\"";
+                System.out.println(findAccount);
+                ResultSet resultSet2 = statement.executeQuery(findAccount);
+                Double balance = 0.0;
+                while(resultSet2.next()){
+                    balance = resultSet2.getDouble("balance");
+                }
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
-                Double balance = account.getBalance();
+                //Double balance = account.getBalance();
                 String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+tradeTime+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
                 Double price = 0.0;
@@ -294,10 +304,13 @@ public class StockService {
                     } else {
                         recordId = 1;
                     }
-                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
+                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    String format = sdf.format(tradeTime);
+                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + ",\"" + customerNum + "\"," + productId + "," + purchase + ",\'" + format + "\')";
                     System.out.println(insertProperty);
                     statement.execute(insertProperty);
                     account.setBalance(balance-price);
+                    accountRepository.save(account);
                     returnMsg.put("flag",true);
                     returnMsg.put("message","购买成功");
                 }
@@ -323,8 +336,9 @@ public class StockService {
                 }
                 List<Map<String, Object>> overdues = new ArrayList<>();
                 for (String iouNum : iouNums) {
-
-                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    String format = sdf.format(tradeTime);
+                    List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,format);//找到该用户所有过期的贷款
                     overdues.addAll(temps);
 
                 }
@@ -357,8 +371,16 @@ public class StockService {
 
                 }
                 Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+                String findAccount = "SELECT * FROM stock.account where customer_num = \""+customerNum+"\" and account_num = \""+accountNumber+"\"";
+                System.out.println(findAccount);
+                ResultSet resultSet2 = statement.executeQuery(findAccount);
+                Double balance = 0.0;
+                while(resultSet2.next()){
+                    balance = resultSet2.getDouble("balance");
+                }
+
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
-                Double balance = account.getBalance();
+                //Double balance = account.getBalance();
                 String findProduct = "SELECT * FROM stock.fund where productId = "+productId+" and date = \""+tradeTime+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
                 Double price = 0.0;
@@ -380,10 +402,14 @@ public class StockService {
                     } else {
                         recordId = 1;
                     }
-                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
+                    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                    String format = sdf.format(tradeTime);
+                    java.util.Date date = sdf.parse(format);
+                    String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + ",\"" + customerNum + "\"," + productId + "," + purchase + ",\'" + format + "\')";
                     System.out.println(insertProperty);
                     statement.execute(insertProperty);
                     account.setBalance(balance-purchase);
+                    accountRepository.save(account);
                     returnMsg.put("flag",true);
                     returnMsg.put("message","购买成功");
                 }
@@ -399,8 +425,9 @@ public class StockService {
             }
             List<Map<String, Object>> overdues = new ArrayList<>();
             for (String iouNum : iouNums) {
-
-                List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,tradeTime.toString());//找到该用户所有过期的贷款
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String format = sdf.format(tradeTime);
+                List<Map<String,Object>> temps = loanService.getOverdueLoanPlanByDate(iouNum,format);//找到该用户所有过期的贷款
                 overdues.addAll(temps);
 
             }
@@ -433,8 +460,15 @@ public class StockService {
 
             }
             Double allBalance = loanService.getBalanceByCustomerCode(customerNum);
+            String findAccount = "SELECT * FROM stock.account where customer_num = \""+customerNum+"\" and account_num = \""+accountNumber+"\"";
+            System.out.println(findAccount);
+            ResultSet resultSet2 = statement.executeQuery(findAccount);
+            Double balance = 0.0;
+            while(resultSet2.next()){
+                balance = resultSet2.getDouble("balance");
+            }
             Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
-            Double balance = account.getBalance();
+            //Double balance = account.getBalance();
             String findProduct = "SELECT * FROM stock.regular where productId = "+productId;
             ResultSet resultSet = statement.executeQuery(findProduct);
             Double price = 0.0;
@@ -456,10 +490,13 @@ public class StockService {
                 } else {
                     recordId = 1;
                 }
-                String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + "," + customerNum + "," + productId + "," + purchase + ",\'" + tradeTime + "\')";
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String format = sdf.format(tradeTime);
+                String insertProperty = "INSERT INTO stock.property (recordID,customerID,productID,amount,purchaseDay) VALUES (" + recordId + ",\"" + customerNum + "\"," + productId + "," + purchase + ",\'" + format + "\')";
                 System.out.println(insertProperty);
                 statement.execute(insertProperty);
                 account.setBalance(balance-price);
+                accountRepository.save(account);
                 returnMsg.put("flag",true);
                 returnMsg.put("message","购买成功");
             }
