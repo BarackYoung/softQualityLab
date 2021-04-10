@@ -271,7 +271,7 @@ public class StockService {
                         if(!repayment.isPenaltyInterestClear()){
                             penalty = repayment.getPenaltyInterest();
                         }
-                        Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                        Map<String,Object> result = loanService.repayment(iouNum,planNum,balance);
                         result.put("customerCode",customerCode);
                         result.put("balance",balance);
                         returnMsg.put("message",result);
@@ -373,7 +373,7 @@ public class StockService {
                         if(!repayment.isPenaltyInterestClear()){
                             penalty = repayment.getPenaltyInterest();
                         }
-                        Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                        Map<String,Object> result = loanService.repayment(iouNum,planNum,balance);
                         result.put("customerCode",customerCode);
                         result.put("balance",balance);
                         returnMsg.put("message",result);
@@ -465,7 +465,7 @@ public class StockService {
                     if(!repayment.isPenaltyInterestClear()){
                         penalty = repayment.getPenaltyInterest();
                     }
-                    Map<String,Object> result = loanService.repayment(iouNum,planNum,penalty);
+                    Map<String,Object> result = loanService.repayment(iouNum,planNum,balance);
                     result.put("customerCode",customerCode);
                     result.put("balance",balance);
                     returnMsg.put("message",result);
