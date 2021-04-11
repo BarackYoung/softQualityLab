@@ -295,7 +295,7 @@ public class StockService {
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
                 //Double balance = account.getBalance();
 
-                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
                 String format = sdf.format(tradeTime);
                 String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+format+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
