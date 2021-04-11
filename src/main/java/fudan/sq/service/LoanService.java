@@ -558,7 +558,9 @@ public class LoanService {
             loanPlanDto.put("updater", updater);
             Map<String, Object> result = httpUtils.doPut("http://10.176.122.172:8012/loan/repayment", httpUtils.gson.toJson(loanPlanDto));
             logger.info("还款结果：" + result);
-            repaymentRepository.delete(repayment);
+            if (repayment!=null){
+               repaymentRepository.delete(repayment);
+            }
             return result;
          }
       }
