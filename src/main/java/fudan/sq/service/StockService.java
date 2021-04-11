@@ -295,11 +295,9 @@ public class StockService {
                 Account account = accountRepository.findByAccountNumAndCustomerNum(accountNumber,customerNum);
                 //Double balance = account.getBalance();
 
-                //进行日期格式的转换
-                SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                String format = sdf.format(tradeTime);
-
-                String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+format+"\"";
+                SimpleDateFormat sdf2=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String format2 = sdf2.format(tradeTime);
+                String findProduct = "SELECT * FROM stock.stock where productId = "+productId+" and date = \""+format2+"\"";
                 ResultSet resultSet = statement.executeQuery(findProduct);
                 Double price = 0.0;
                 while(resultSet.next()){
