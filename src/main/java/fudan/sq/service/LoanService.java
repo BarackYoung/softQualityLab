@@ -274,7 +274,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       String updateTime = df2.format(new Date(System.currentTimeMillis()));
       double updater = 0;
 
-      String dataStr = repaymentBill.get("planDate").toString();
+      String dataStr = repaymentBill.get("planDate").toString()+"11:00:18";
 
       Date planData = df.parse(dataStr);
 
@@ -496,7 +496,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       date2 = sdf.parse(currentDate2);
       System.out.println("当前时间："+date2);
 
-
+      Date date = df2.parse("2077-4-4 12:22:22");
 
 
 
@@ -524,11 +524,12 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
       String updateTime = df2.format(new Date(System.currentTimeMillis()));
       double updater = 0;
 
-      String dataStr = repaymentBill.get("planDate").toString();
+      String dataStr = repaymentBill.get("planDate").toString()+"11:00:18";
 
       Date planData = df.parse(dataStr);
 
-      if (planData.before(date2)) {
+
+      if (planData.before(date)) {
          double should_penaltyInterest = remainAmount * 0.05;
          if (penaltyInterest < should_penaltyInterest) {
             returnMsg.put("flag",false);
@@ -544,7 +545,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                loanPlanDto.put("compoundInterest", compoundInterest);
                loanPlanDto.put("creatTime", creatTime);
                loanPlanDto.put("creator", creator);
-               loanPlanDto.put("currentDate", currentDate);
+               loanPlanDto.put("currentDate", dataStr);
                loanPlanDto.put("id", id_);
                loanPlanDto.put("iouNum", iouNum);
                loanPlanDto.put("payMethod", payMethod);
@@ -557,7 +558,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                loanPlanDto.put("remainAmount", remainAmount);
                loanPlanDto.put("remainInterest", remainInterest);
                loanPlanDto.put("remainPrincipal", remainPrincipal);
-               loanPlanDto.put("repaymentStatus", 2);
+               loanPlanDto.put("repaymentStatus", 1);
                loanPlanDto.put("transactionCode", transactionCode);
                loanPlanDto.put("updateTime", currentDate);
                loanPlanDto.put("updater", updater);
@@ -598,7 +599,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   loanPlanDto.put("compoundInterest", compoundInterest);
                   loanPlanDto.put("creatTime", creatTime);
                   loanPlanDto.put("creator", creator);
-                  loanPlanDto.put("currentDate", currentDate);
+                  loanPlanDto.put("currentDate", dataStr);
                   loanPlanDto.put("id", id_);
                   loanPlanDto.put("iouNum", iouNum);
                   loanPlanDto.put("payMethod", payMethod);
@@ -611,7 +612,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
                   loanPlanDto.put("remainAmount", remainAmount);
                   loanPlanDto.put("remainInterest", remainInterest);
                   loanPlanDto.put("remainPrincipal", remainPrincipal);
-                  loanPlanDto.put("repaymentStatus", 2);
+                  loanPlanDto.put("repaymentStatus", 1);
                   loanPlanDto.put("transactionCode", transactionCode);
                   loanPlanDto.put("updateTime", updateTime);
                   loanPlanDto.put("updater", updater);
@@ -642,7 +643,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             loanPlanDto.put("compoundInterest", compoundInterest);
             loanPlanDto.put("creatTime", creatTime);
             loanPlanDto.put("creator", creator);
-            loanPlanDto.put("currentDate", currentDate);
+            loanPlanDto.put("currentDate", dataStr);
             loanPlanDto.put("id", id_);
             loanPlanDto.put("iouNum", iouNum);
             loanPlanDto.put("payMethod", payMethod);
@@ -655,7 +656,7 @@ public Map<String,Object> getLoanList(String customerCode) throws Exception {
             loanPlanDto.put("remainAmount", remainAmount);
             loanPlanDto.put("remainInterest", remainInterest);
             loanPlanDto.put("remainPrincipal", remainPrincipal);
-            loanPlanDto.put("repaymentStatus", 2);
+            loanPlanDto.put("repaymentStatus", 1);
             loanPlanDto.put("transactionCode", transactionCode);
             loanPlanDto.put("updateTime", updateTime);
             loanPlanDto.put("updater", updater);
